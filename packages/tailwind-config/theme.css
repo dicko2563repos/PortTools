@@ -1,0 +1,9 @@
+:root {
+  --background: #f1f5f9;
+  --foreground: #0f172a;
+  --porttools-primary: #0f172a;
+  --porttools-primary-hover: #1e293b;
+  --porttools-muted: #475569;
+  --porttools-border: #cbd5e1;
+  --porttools-card-border: #e2e8f0;
+}

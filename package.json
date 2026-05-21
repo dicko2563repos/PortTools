@@ -1,0 +1,7 @@
+{
+  "name": "porttools",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}
