@@ -23,7 +23,7 @@ Update when adding or retiring a PortTools app.
 | **Name** | Port Movement Summary |
 | **Subdomain** | `movements.porttools.com.au` |
 | **Repo** | `C:\Projects\Movements-Web` |
-| **Database** | Supabase (separate from PCR for v1) |
+| **Database** | Shared Supabase with PCR; schema `movements` |
 | **Users** | Port (bi-weekly movement entry), Admin (ports/passwords) |
 | **Status** | Dev |
 | **Docs** | `Movements-Web/docs/movements-rules-spec.md`, `memory-bank/` |
