@@ -1,15 +1,26 @@
 # Auth roadmap — PortTools
 
-## Today (per app)
+## Today (Option 2 — shared credentials)
 
-Each app implements its own login:
+PCR and Movements share login **credentials** in Supabase schema **`porttools`** (not `auth` — that name is reserved on Supabase).
 
-| App | Port login | Admin login | Session |
-|-----|------------|-------------|---------|
-| PCR (Compliance-Web) | Port code + password | Email + password | JWT cookie `compliance_session` |
-| PTS Calc | *(document in that repo)* | *(if any)* | *(document in that repo)* |
+| Store | Tables |
+|-------|--------|
+| Shared | `porttools.ports`, `porttools.port_credentials`, `porttools.admins` |
+| PCR app data | `public.ports`, compliance records, … |
+| Movements app data | `movements.ports`, movement years, … |
 
-Port passwords are **shared per port**; reset via admin panel or support (see PCR Admin → Edit port).
+| App | Port login | Admin login | Session (still per app) |
+|-----|------------|-------------|-------------------------|
+| PCR | Port code + password | Email + password | JWT cookie `compliance_session` |
+| Movements | Same password as PCR | Same admin as PCR | JWT cookie `movements_session` |
+| PTS Calc | *(no login)* | — | — |
+
+Package: **`@porttools/auth`** (`PortTools/packages/auth`) — password hashing + auth store helpers.
+
+Deploy: see `Compliance-Web/docs/shared-auth.md`.
+
+Port passwords are **shared per port** across PCR and Movements; reset via admin in either app updates `porttools.port_credentials`.
 
 Forgot password UX: link to **kgc@precisionaviation.com.au** (Option A — no email self-service yet).
 
@@ -28,27 +39,27 @@ SMTP or provider for admin accounts only; port users still admin-reset.
 Static or minimal Next site:
 
 - PAS branding
-- Cards/links: PCR, PTS Calc, future apps
+- Cards/links: PCR, Movements, PTS Calc (no login for calc)
 - No login yet — links open each subdomain
 
-## Unified port login *(future)*
+## Unified port login — Option 3 *(future)*
 
 **Goal:** User logs in once at hub (or any app), accesses all apps as that port.
 
-Constraints to preserve:
+Likely steps after Option 2:
 
-- Same port codes/passwords across apps **only if** product decides shared credential store (today: **per-app database**)
-- Cookie domain: `.porttools.com.au` requires shared `SESSION_SECRET` and compatible JWT payload **or** central auth API
+1. Hub login sets cookie on `.porttools.com.au`
+2. Same `SESSION_SECRET` across Vercel projects
+3. Compatible JWT payload; Movements `unlockedPeriodIds` moved to DB or app cookie
+4. Each app validates shared cookie / retires per-app login pages
 
-Likely implementation path:
-
-1. Extract shared auth package (`@porttools/auth`) from Compliance-Web
-2. Shared `ports` + `port_credentials` tables **or** auth microservice
-3. Hub login sets cookie on `.porttools.com.au`
-4. Each app validates same cookie / calls auth service
-
-**Do not implement SSO until hub exists and product confirms shared DB vs federated auth.**
+**Do not implement SSO until hub exists and Option 2 is stable in production.**
 
 ## Agent note
 
-When scaffolding a new app, copy **auth UX** (login pages, session shape) from Compliance-Web; use a **separate** Supabase project/database unless explicitly merging.
+When scaffolding a new PortTools app that needs login:
+
+- Add `@porttools/auth` and Prisma models for **`porttools`** schema
+- App-local `ports` table for FKs; join on **`code`** at login
+- Use a **separate session cookie name** until Option 3 SSO
+- Do not duplicate `port_credentials` or `admins` in app schemas
