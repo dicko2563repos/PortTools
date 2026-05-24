@@ -32,15 +32,17 @@ Logged-in admin can change own password (current + new) on PCR and PMS admin pag
 
 SMTP or provider for admin accounts only; port users still admin-reset.
 
-## Hub landing *(planned)*
+## Hub landing *(v1 — done)*
 
 **URL:** `https://porttools.com.au` (or `www`)
 
-Static or minimal Next site:
+Next.js app: **`PortTools/apps/hub`** (`@porttools/hub`), deploy as separate Vercel project.
 
-- PAS branding
-- Cards/links: PCR, Movements, PTS Calc (no login for calc)
-- No login yet — links open each subdomain
+- PAS branding + **PortTools** product line
+- Cards/links: PCR, PMS, PTS Calc (no login on hub)
+- Support mailto footer
+
+See `apps/hub/README.md` for Vercel + DNS setup.
 
 ## Unified port login — Option 3 *(future)*
 

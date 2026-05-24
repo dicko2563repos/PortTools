@@ -5,6 +5,8 @@ export { BrandTitle } from "./BrandTitle";
 export { Button } from "./Button";
 export { Card } from "./Card";
 export { ForgotPasswordHelp } from "./ForgotPasswordHelp";
+export { HubHome, DEFAULT_HUB_APPS } from "./HubHome";
+export type { HubAppLink, HubHomeProps } from "./HubHome";
 export { HomeLink } from "./HomeLink";
 export { Input } from "./Input";
 export { LoginForm } from "./LoginForm";

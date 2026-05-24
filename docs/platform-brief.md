@@ -15,9 +15,9 @@ Web tools for port operators and internal admin, hosted under **porttools.com.au
 ## Domain layout
 
 ```
-porttools.com.au          → Hub / landing (future)
+porttools.com.au          → Hub / landing (`PortTools/apps/hub`)
 pcr.porttools.com.au      → Port Compliance Record (live)
-movements.porttools.com.au → Port Movement Summary (dev)
+pms.porttools.com.au      → Port Movement Summary (live)
 ptscalc.porttools.com.au  → PTS Calc (live)
 <future>.porttools.com.au → Additional apps
 ```
@@ -40,7 +40,7 @@ Subdomains map to **separate Vercel projects**. DNS CNAME records in VentraIP VI
 | Phase | What |
 |-------|------|
 | **Now** | Separate repos, shared `@porttools/ui` in `PortTools/packages/` |
-| **Next** | Hub landing page listing apps with links |
+| **Next** | Hub landing page listing apps with links *(v1 built — deploy `apps/hub`)* |
 | **Later** | Single port login at hub → session across subdomains (`.porttools.com.au` cookie or shared auth service) |
 
 Do **not** block app delivery on hub/SSO. New apps should use the same auth *model* (port code + password) so SSO is easier later.

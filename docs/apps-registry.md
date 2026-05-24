@@ -21,11 +21,11 @@ Update when adding or retiring a PortTools app.
 | Field | Value |
 |-------|--------|
 | **Name** | Port Movement Summary |
-| **Subdomain** | `movements.porttools.com.au` |
+| **Subdomain** | `pms.porttools.com.au` |
 | **Repo** | `C:\Projects\Movements-Web` |
 | **Database** | Shared Supabase with PCR; schema `movements` |
 | **Users** | Port (bi-weekly movement entry), Admin (ports/passwords) |
-| **Status** | Dev |
+| **Status** | Live |
 | **Docs** | `Movements-Web/docs/movements-rules-spec.md`, `memory-bank/` |
 | **Excel ref** | `Port Movement Summary.xlsm` in OneDrive Recording folder |
 
@@ -45,9 +45,13 @@ Update when adding or retiring a PortTools app.
 |-------|--------|
 | **Name** | PortTools Hub |
 | **Subdomain** | `porttools.com.au` / `www` |
-| **Repo** | Planned: `PortTools/apps/hub` or static site in this folder |
-| **Status** | Not started |
-| **See** | `auth-roadmap.md` |
+| **Repo** | `PortTools/apps/hub` (same GitHub repo as shared packages) |
+| **GitHub** | dicko2563repos/PortTools |
+| **Vercel** | Separate project; root directory `apps/hub` |
+| **Database** | None (v1) |
+| **Users** | Public landing — links only |
+| **Status** | Ready to deploy |
+| **See** | `apps/hub/README.md`, `auth-roadmap.md` |
 
 ## Template (copy for new app)
 

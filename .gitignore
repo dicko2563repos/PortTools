@@ -1,3 +1,7 @@
+# Build
+.next/
+**/.next/
+
 # Dependencies
 node_modules/
 **/node_modules/

@@ -2,6 +2,11 @@
   "name": "porttools",
   "private": true,
   "workspaces": [
-    "packages/*"
-  ]
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:hub": "npm run build --workspace=@porttools/hub",
+    "dev:hub": "npm run dev --workspace=@porttools/hub"
+  }
 }

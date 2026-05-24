@@ -77,7 +77,7 @@ Default: **kgc@precisionaviation.com.au** (`NEXT_PUBLIC_SUPPORT_EMAIL`)
 
 ## New app checklist
 
-- [ ] Uses `@porttools/ui` (`AppHomeLinks`, `LoginForm`, `ForgotPasswordHelp`, `Button`, `Input`)
+- [ ] Uses `@porttools/ui` (`AppHomeLinks`, `HubHome`, `LoginForm`, `ForgotPasswordHelp`, `Button`, `Input`)
 - [ ] Landing page uses PAS + product name pattern
 - [ ] Port / Admin login routes match naming (`/login/port`, `/login/admin`) unless app has no port users
 - [ ] Primary/secondary buttons match above

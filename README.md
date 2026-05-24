@@ -9,7 +9,7 @@ Shared docs for web apps at **porttools.com.au** (subdomains per app).
 | Port Compliance Record (PCR) | [pcr.porttools.com.au](https://pcr.porttools.com.au) | `../Compliance-Web` | Live |
 | Port Movement Summary (PMS) | [pms.porttools.com.au](https://pms.porttools.com.au) | `../Movements-Web` | Live |
 | PTS Calc | [ptscalc.porttools.com.au](https://ptscalc.porttools.com.au) | *(separate — add path when local)* | Live |
-| Hub / landing | `porttools.com.au` *(future)* | *(this folder, later)* | Planned |
+| Hub / landing | [porttools.com.au](https://porttools.com.au) *(deploy pending)* | `apps/hub` in this repo | Ready |
 
 ## Docs (read before new UI or auth work)
 
