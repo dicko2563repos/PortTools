@@ -17,9 +17,24 @@ export async function PATCH(request: Request, context: RouteContext) {
     const body = (await parseJsonBody(request)) as {
       loginEmail?: string | null;
       remindersEnabled?: boolean;
+      accessPin?: string;
     };
 
     const store = createAuthStore(prisma as unknown as AuthStoreClient);
+
+    if (body.accessPin !== undefined) {
+      const pin = body.accessPin.trim();
+      if (!/^\d{4,8}$/.test(pin)) {
+        return NextResponse.json(
+          { error: "Access PIN must be 4–8 digits" },
+          { status: 400 }
+        );
+      }
+      const pinOk = await store.setAccessPin(portId, pin);
+      if (!pinOk) {
+        return NextResponse.json({ error: "Invalid access PIN" }, { status: 400 });
+      }
+    }
 
     try {
       await store.syncAuthPortMeta(portId, {
@@ -44,6 +59,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         loginEmail: true,
         remindersEnabled: true,
         isActive: true,
+        accessPin: { select: { portId: true } },
       },
     });
 
@@ -51,6 +67,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Port not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ port });
+    const { accessPin, ...rest } = port;
+    return NextResponse.json({ port: { ...rest, hasAccessPin: accessPin !== null } });
   }, { fallback: PUBLIC_ERRORS.saveFailed });
 }

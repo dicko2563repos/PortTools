@@ -1,3 +1,4 @@
+import { isValidAccessPin, normalizeAccessPin } from "./access-pin";
 import { hashPassword, verifyPassword } from "./password";
 import {
   ADMIN_RESET_TOKEN_TTL_MS,
@@ -88,6 +89,17 @@ export type AuthStoreClient = {
       create: { portId: string; passwordHash: string };
       update: { passwordHash: string };
     }): Promise<unknown>;
+  };
+  authPortAccessPin: {
+    findUnique(args: {
+      where: { portId: string };
+    }): Promise<{ portId: string; pinHash: string } | null>;
+    upsert(args: {
+      where: { portId: string };
+      create: { portId: string; pinHash: string };
+      update: { pinHash: string };
+    }): Promise<unknown>;
+    delete(args: { where: { portId: string } }): Promise<unknown>;
   };
   authAdmin: {
     findUnique(args: {
@@ -470,6 +482,35 @@ export function createAuthStore(client: AuthStoreClient) {
         create: { portId: authPortId, passwordHash },
         update: { passwordHash },
       });
+    },
+
+    async setAccessPin(authPortId: string, pin: string): Promise<boolean> {
+      const normalized = normalizeAccessPin(pin);
+      if (!isValidAccessPin(normalized)) return false;
+      const pinHash = await hashPassword(normalized);
+      await client.authPortAccessPin.upsert({
+        where: { portId: authPortId },
+        create: { portId: authPortId, pinHash },
+        update: { pinHash },
+      });
+      return true;
+    },
+
+    async verifyAccessPin(authPortId: string, pin: string): Promise<boolean> {
+      const normalized = normalizeAccessPin(pin);
+      if (!isValidAccessPin(normalized)) return false;
+      const row = await client.authPortAccessPin.findUnique({
+        where: { portId: authPortId },
+      });
+      if (!row) return false;
+      return verifyPassword(normalized, row.pinHash);
+    },
+
+    async hasAccessPin(authPortId: string): Promise<boolean> {
+      const row = await client.authPortAccessPin.findUnique({
+        where: { portId: authPortId },
+      });
+      return row !== null;
     },
 
     async setPortPasswordByCode(code: string, password: string): Promise<boolean> {

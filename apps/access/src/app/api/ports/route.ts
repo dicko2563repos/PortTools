@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_ERRORS, withApiErrorHandling } from "@/lib/api-error";
-import { listManagerPorts, requireManagerSession } from "@/lib/access-register";
+import { listManagerPorts, requireAccessSession } from "@/lib/access-register";
 
 export async function GET() {
   return withApiErrorHandling("GET /api/ports", async () => {
-    const manager = await requireManagerSession();
-    if (manager instanceof NextResponse) return manager;
+    const session = await requireAccessSession();
+    if (session instanceof NextResponse) return session;
 
-    const ports = await listManagerPorts(manager);
+    const ports = await listManagerPorts(session);
     return NextResponse.json({ ports });
   }, { fallback: PUBLIC_ERRORS.loadFailed });
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_ERRORS, parseJsonBody, withApiErrorHandling } from "@/lib/api-error";
-import { requireManagerSession, requireManagerPort } from "@/lib/access-register";
+import { requireAccessRegisterPort } from "@/lib/access-register";
 import { prisma } from "@/lib/db";
 
 type RouteContext = { params: Promise<{ portId: string; checkoutId: string }> };
@@ -9,12 +9,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withApiErrorHandling(
     "PATCH /api/admin/ports/[portId]/access/fob-checkouts/[checkoutId]/return",
     async () => {
-      const manager = await requireManagerSession();
-      if (manager instanceof NextResponse) return manager;
-
       const { portId, checkoutId } = await context.params;
-      const portResult = await requireManagerPort(portId, manager);
-      if (portResult instanceof NextResponse) return portResult;
+      const auth = await requireAccessRegisterPort(portId);
+      if (auth instanceof NextResponse) return auth;
+      const { port: portResult } = auth;
 
       const body = (await parseJsonBody(request)) as { notes?: string };
       const notes = body.notes?.trim();

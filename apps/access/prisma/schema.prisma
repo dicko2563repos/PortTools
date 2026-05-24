@@ -82,6 +82,8 @@ model AuthPort {
 
   credentials AuthPortCredential?
 
+  accessPin   AuthPortAccessPin?
+
   managerAccess ManagerPortAccess[]
 
 
@@ -111,6 +113,28 @@ model AuthPortCredential {
   @@schema("porttools")
 
   @@map("port_credentials")
+
+}
+
+
+
+model AuthPortAccessPin {
+
+  portId    String   @id @map("port_id") @db.Uuid
+
+  pinHash   String   @map("pin_hash")
+
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+
+
+  port AuthPort @relation(fields: [portId], references: [id], onDelete: Cascade)
+
+
+
+  @@schema("porttools")
+
+  @@map("port_access_pins")
 
 }
 

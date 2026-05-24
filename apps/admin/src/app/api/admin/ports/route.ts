@@ -26,10 +26,16 @@ export async function GET() {
         loginEmail: true,
         remindersEnabled: true,
         isActive: true,
+        accessPin: { select: { portId: true } },
       },
     });
 
-    return NextResponse.json({ ports });
+    return NextResponse.json({
+      ports: ports.map(({ accessPin, ...port }) => ({
+        ...port,
+        hasAccessPin: accessPin !== null,
+      })),
+    });
   }, { fallback: PUBLIC_ERRORS.loadFailed });
 }
 
@@ -45,16 +51,18 @@ export async function POST(request: Request) {
       name?: string;
       loginEmail?: string;
       password?: string;
+      accessPin?: string;
     };
 
     const code = body.code ? normalizePortCode(body.code) : "";
     const name = body.name?.trim() ?? "";
     const loginEmail = body.loginEmail?.trim().toLowerCase() ?? "";
     const password = body.password ?? "";
+    const accessPin = body.accessPin?.trim() ?? "";
 
-    if (!code || !name || !loginEmail || password.length < 8) {
+    if (!code || !name || !loginEmail || password.length < 8 || !/^\d{4,8}$/.test(accessPin)) {
       return NextResponse.json(
-        { error: "Code, name, login email, and password (min 8 chars) required" },
+        { error: "Code, name, login email, password (min 8 chars), and numeric access PIN (4–8 digits) required" },
         { status: 400 }
       );
     }
@@ -71,6 +79,7 @@ export async function POST(request: Request) {
         name,
         password,
         loginEmail,
+        accessPin,
       });
       if (!provisioned.ok) {
         throw new Error("WEAK_PASSWORD");
@@ -85,6 +94,7 @@ export async function POST(request: Request) {
           loginEmail: true,
           remindersEnabled: true,
           isActive: true,
+          accessPin: { select: { portId: true } },
         },
       });
     }).catch((error: unknown) => {
@@ -108,6 +118,19 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ port }, { status: 201 });
+    return NextResponse.json(
+      {
+        port: {
+          id: port.id,
+          code: port.code,
+          name: port.name,
+          loginEmail: port.loginEmail,
+          remindersEnabled: port.remindersEnabled,
+          isActive: port.isActive,
+          hasAccessPin: port.accessPin !== null,
+        },
+      },
+      { status: 201 }
+    );
   }, { fallback: PUBLIC_ERRORS.saveFailed });
 }

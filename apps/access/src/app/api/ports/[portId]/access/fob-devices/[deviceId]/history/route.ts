@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_ERRORS, withApiErrorHandling } from "@/lib/api-error";
-import { loadFobDeviceHistory, requireManagerSession, requireManagerPort } from "@/lib/access-register";
+import { loadFobDeviceHistory, requireAccessRegisterPort } from "@/lib/access-register";
 
 type RouteContext = { params: Promise<{ portId: string; deviceId: string }> };
 
@@ -8,12 +8,10 @@ export async function GET(_request: Request, context: RouteContext) {
   return withApiErrorHandling(
     "GET /api/admin/ports/[portId]/access/fob-devices/[deviceId]/history",
     async () => {
-      const manager = await requireManagerSession();
-      if (manager instanceof NextResponse) return manager;
-
       const { portId, deviceId } = await context.params;
-      const portResult = await requireManagerPort(portId, manager);
-      if (portResult instanceof NextResponse) return portResult;
+      const auth = await requireAccessRegisterPort(portId);
+      if (auth instanceof NextResponse) return auth;
+      const { port: portResult } = auth;
 
       const timeline = await loadFobDeviceHistory(portId, deviceId);
       if (!timeline) {

@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { PUBLIC_ERRORS, parseJsonBody, withApiErrorHandling } from "@/lib/api-error";
 import {
   findOpenCheckoutForDevice,
-  requireManagerSession,
-  requireManagerPort,
+  requireAccessRegisterPort,
 } from "@/lib/access-register";
 import { prisma } from "@/lib/db";
 
@@ -13,12 +12,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   return withApiErrorHandling(
     "PATCH /api/admin/ports/[portId]/access/fob-devices/[deviceId]",
     async () => {
-      const manager = await requireManagerSession();
-      if (manager instanceof NextResponse) return manager;
-
       const { portId, deviceId } = await context.params;
-      const portResult = await requireManagerPort(portId, manager);
-      if (portResult instanceof NextResponse) return portResult;
+      const auth = await requireAccessRegisterPort(portId);
+      if (auth instanceof NextResponse) return auth;
+      const { port: portResult, session } = auth;
 
       const device = await prisma.fobDevice.findFirst({
         where: { id: deviceId, portId },
@@ -60,7 +57,7 @@ export async function PATCH(request: Request, context: RouteContext) {
               portId,
               eventType: "deleted",
               oldLabel: device.label,
-              adminEmail: manager.email,
+              adminEmail: session.email,
             },
           });
           return next;
@@ -91,7 +88,7 @@ export async function PATCH(request: Request, context: RouteContext) {
               portId,
               eventType: "restored",
               newLabel: device.label,
-              adminEmail: manager.email,
+              adminEmail: session.email,
             },
           });
           return next;
@@ -140,7 +137,7 @@ export async function PATCH(request: Request, context: RouteContext) {
               eventType: "renamed",
               oldLabel: device.label,
               newLabel: label,
-              adminEmail: manager.email,
+              adminEmail: session.email,
             },
           });
         }

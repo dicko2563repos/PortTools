@@ -12,6 +12,7 @@ export type ProvisionPortInput = {
   name: string;
   password: string;
   loginEmail?: string;
+  accessPin?: string;
 };
 
 export type ProvisionPortResult =
@@ -107,6 +108,13 @@ export async function provisionPortEverywhere(
 
   await ensurePublicPort(tx, code, name, isActive);
   await ensureMovementsPort(tx, code, name, isActive);
+
+  if (input.accessPin) {
+    const pinOk = await store.setAccessPin(authPortId, input.accessPin);
+    if (!pinOk) {
+      return { ok: false, reason: "weak_password" };
+    }
+  }
 
   return { ok: true, authPortId, code, name };
 }

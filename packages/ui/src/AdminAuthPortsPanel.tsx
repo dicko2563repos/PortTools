@@ -22,6 +22,7 @@ export type AuthPortDto = {
   loginEmail: string | null;
   remindersEnabled: boolean;
   isActive: boolean;
+  hasAccessPin: boolean;
 };
 
 export type AdminAuthPortsPanelProps = Record<string, never>;
@@ -31,6 +32,7 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pinDrafts, setPinDrafts] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/ports");
@@ -61,6 +63,7 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
         name: form.get("name"),
         loginEmail: form.get("loginEmail"),
         password: form.get("password"),
+        accessPin: form.get("accessPin"),
       }),
     });
     setBusy(false);
@@ -70,6 +73,33 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
     }
     setMessage("Port created across PCR, PMS, and Access");
     formEl.reset();
+    await load();
+  }
+
+  async function onSetAccessPin(portId: string) {
+    const accessPin = pinDrafts[portId]?.trim() ?? "";
+    if (!/^\d{4,8}$/.test(accessPin)) {
+      setError("Access PIN must be 4–8 digits");
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setBusy(true);
+    const res = await fetch(`/api/admin/ports/${portId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accessPin }),
+    });
+    setBusy(false);
+
+    if (!res.ok) {
+      setError(await readApiError(res, "Failed to update access PIN"));
+      return;
+    }
+
+    setMessage("Access register PIN updated");
+    setPinDrafts((prev) => ({ ...prev, [portId]: "" }));
     await load();
   }
 
@@ -85,21 +115,55 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
             <li className="p-3 text-sm text-slate-500">No ports yet</li>
           )}
           {ports.map((port) => (
-            <li key={port.id} className="p-3 text-sm">
+            <li key={port.id} className="space-y-3 p-3 text-sm">
               <div>
                 <strong>{port.code}</strong> — {port.name}
                 {!port.isActive && (
                   <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs">Inactive</span>
                 )}
               </div>
-              <p className="mt-1 text-slate-600">
+              <p className="text-slate-600">
                 Login email: {port.loginEmail ?? (
                   <span className="text-amber-800">Not set — hub login disabled</span>
+                )}
+              </p>
+              <p className="text-slate-600">
+                Access register PIN:{" "}
+                {port.hasAccessPin ? (
+                  <span className="text-green-800">Configured</span>
+                ) : (
+                  <span className="text-amber-800">Not set — hub operators cannot open register</span>
                 )}
               </p>
               {port.remindersEnabled && (
                 <p className="text-slate-500">Compliance email reminders enabled</p>
               )}
+              <div className="flex flex-wrap items-end gap-2 pt-1">
+                <label className="block text-xs text-slate-600">
+                  {port.hasAccessPin ? "Set new PIN" : "Set access PIN"}
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    pattern="\d{4,8}"
+                    minLength={4}
+                    maxLength={8}
+                    value={pinDrafts[port.id] ?? ""}
+                    onChange={(e) =>
+                      setPinDrafts((prev) => ({ ...prev, [port.id]: e.target.value }))
+                    }
+                    className="mt-1 block w-32 rounded border border-slate-300 px-2 py-1 tracking-widest"
+                  />
+                </label>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  className="text-sm"
+                  onClick={() => void onSetAccessPin(port.id)}
+                >
+                  Save PIN
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
@@ -140,6 +204,22 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
           </label>
           <p className="text-xs text-slate-500">
             Used to sign in at porttools.com.au and for future compliance reminders.
+          </p>
+          <label className="block text-sm">
+            Access register PIN
+            <input
+              name="accessPin"
+              type="password"
+              inputMode="numeric"
+              required
+              minLength={4}
+              maxLength={8}
+              pattern="\d{4,8}"
+              className="mt-1 w-full rounded border border-slate-300 px-2 py-1 tracking-widest"
+            />
+          </label>
+          <p className="text-xs text-slate-500">
+            Numeric PIN (4–8 digits) for port operators opening the access register from the hub.
           </p>
           <label className="block text-sm">
             Shared password

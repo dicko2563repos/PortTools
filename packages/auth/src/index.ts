@@ -1,3 +1,4 @@
+export { isValidAccessPin, normalizeAccessPin } from "./access-pin";
 export { BCRYPT_ROUNDS, hashPassword, verifyPassword } from "./password";
 export {
   createAuthStore,

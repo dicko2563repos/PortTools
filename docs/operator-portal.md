@@ -24,10 +24,10 @@ Platform admin stays at **admin.porttools.com.au**.
 - Hub tab-session gate — closing the browser tab/window requires login again (same pattern as admin/access)
 - Access: port-operator sessions skip the access tab gate; manager login unchanged
 
-## Phase 3 (planned)
+## Phase 3 (in progress)
 
-- Access register PIN gate instead of manager login
-- Compliance reminder cron emails when `reminders_enabled`
+- **Access register PIN** — admin sets a numeric PIN per port; hub port operators enter it before the register loads (managers using access.porttools.com.au skip the PIN)
+- Compliance reminder cron emails when `reminders_enabled` (planned)
 
 ## Database migration
 
@@ -38,11 +38,13 @@ npm run db:migrate:deploy
 
 Migration: `20260524220000_port_login_email`
 
-**Existing ports:** set login email via Admin API PATCH or SQL:
+**Existing ports:** set login email via Admin API PATCH or SQL. Set access PIN in the admin console (Ports section) or PATCH with `accessPin`.
 
 ```sql
 UPDATE porttools.ports SET login_email = 'ops@example.com' WHERE code = 'KGC';
 ```
+
+Migration: `20260525180000_port_access_pin` (run `npm run db:migrate:deploy` from Compliance-Web or Movements-Web)
 
 ## Hub Vercel env
 

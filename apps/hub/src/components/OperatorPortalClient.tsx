@@ -45,12 +45,9 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
             <h1 className="text-xl font-semibold">Movement reports</h1>
             <p className="text-sm text-slate-600">{session.email}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <OpenInNewTab href={href} />
-            <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
-              {busy ? "Signing out…" : "Sign out"}
-            </Button>
-          </div>
+          <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
+            {busy ? "Signing out…" : "Sign out"}
+          </Button>
         </header>
         <AppFrame title="Movement reports" src={href} />
       </div>
@@ -78,12 +75,9 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
           </h1>
           <p className="text-sm text-slate-600">PortTools operator portal</p>
         </div>
-        <div className="flex items-center gap-3">
-          <OpenInNewTab href={activeTab.href} />
-          <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
-            {busy ? "Signing out…" : "Sign out"}
-          </Button>
-        </div>
+        <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
+          {busy ? "Signing out…" : "Sign out"}
+        </Button>
       </header>
 
       <nav className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
@@ -105,19 +99,6 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
 
       <AppFrame key={activeTab.href} title={activeTab.label} src={activeTab.href} />
     </div>
-  );
-}
-
-function OpenInNewTab({ href }: { href: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-sm text-slate-600 underline hover:text-slate-900"
-    >
-      Open in new tab
-    </a>
   );
 }
 

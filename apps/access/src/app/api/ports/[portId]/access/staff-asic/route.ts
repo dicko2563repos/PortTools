@@ -3,8 +3,7 @@ import { PUBLIC_ERRORS, parseJsonBody, withApiErrorHandling } from "@/lib/api-er
 import {
   formatAsicExpiryMonth,
   parseAsicExpiryMonth,
-  requireManagerSession,
-  requireManagerPort,
+  requireAccessRegisterPort,
 } from "@/lib/access-register";
 import { prisma } from "@/lib/db";
 
@@ -14,12 +13,10 @@ export async function POST(request: Request, context: RouteContext) {
   return withApiErrorHandling(
     "POST /api/admin/ports/[portId]/access/staff-asic",
     async () => {
-      const manager = await requireManagerSession();
-      if (manager instanceof NextResponse) return manager;
-
       const { portId } = await context.params;
-      const portResult = await requireManagerPort(portId, manager);
-      if (portResult instanceof NextResponse) return portResult;
+      const auth = await requireAccessRegisterPort(portId);
+      if (auth instanceof NextResponse) return auth;
+      const { port: portResult } = auth;
 
       const body = (await parseJsonBody(request)) as {
         name?: string;

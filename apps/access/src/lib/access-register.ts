@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { FobDeviceEventType, FobHolderType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSession, type SessionPayload } from "@/lib/session";
+import { hasAccessPinUnlock } from "@/lib/access-pin-unlock";
 import {
   daysUntilAsicExpiry,
   formatAsicExpiryMonth,
@@ -61,6 +62,25 @@ export async function requireManagerPort(
   }
 
   return portResult;
+}
+
+export async function requireAccessRegisterPort(
+  portId: string
+): Promise<{ session: AccessSession; port: PortInfo } | NextResponse> {
+  const session = await requireAccessSession();
+  if (session instanceof NextResponse) return session;
+
+  const port = await requireManagerPort(portId, session);
+  if (port instanceof NextResponse) return port;
+
+  if (session.type === "port") {
+    const unlocked = await hasAccessPinUnlock(session.authPortId, session.movementsPortId);
+    if (!unlocked) {
+      return NextResponse.json({ error: "Access PIN required", code: "PIN_REQUIRED" }, { status: 403 });
+    }
+  }
+
+  return { session, port };
 }
 
 export async function listManagerPorts(session: AccessSession) {
