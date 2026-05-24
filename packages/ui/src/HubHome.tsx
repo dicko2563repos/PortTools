@@ -23,14 +23,20 @@ export const DEFAULT_HUB_APPS: HubAppLink[] = [
   },
   {
     name: "Port Movement Summary",
-    description: "Bi-weekly aircraft movement entry and reporting.",
+    description: "Bi-weekly aircraft movement entry and cross-port reports.",
     href: "https://pms.porttools.com.au",
     status: "live",
   },
   {
-    name: "Port Movement Reports",
-    description: "Cross-port movement summaries for finance and management (read-only).",
-    href: "https://pms.porttools.com.au/login/reports",
+    name: "Access register",
+    description: "Staff ASIC and FOB tracking for port managers.",
+    href: "https://access.porttools.com.au",
+    status: "live",
+  },
+  {
+    name: "Admin console",
+    description: "Platform administration for PCR, PMS, and manager accounts.",
+    href: "https://admin.porttools.com.au",
     status: "live",
   },
   {

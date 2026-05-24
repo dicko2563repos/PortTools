@@ -1,3 +1,5 @@
+export { AdminManagersPanel } from "./AdminManagersPanel";
+export type { AdminManagersPanelProps, AuthPortOption, ManagerDto } from "./AdminManagersPanel";
 export { AdminAdminsPanel } from "./AdminAdminsPanel";
 export type { AdminAdminsPanelProps } from "./AdminAdminsPanel";
 export { AdminForgotPasswordForm } from "./AdminForgotPasswordForm";

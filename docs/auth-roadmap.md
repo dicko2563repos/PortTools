@@ -49,10 +49,23 @@ Logged-in admin can list, add, reset password, and remove admin accounts (cannot
 Next.js app: **`PortTools/apps/hub`** (`@porttools/hub`), deploy as separate Vercel project.
 
 - PAS branding + **PortTools** product line
-- Cards/links: PCR, PMS, PTS Calc (no login on hub)
+- Cards/links: PCR, PMS, Access register, Admin console, PTS Calc
 - Support mailto footer
 
 See `apps/hub/README.md` for Vercel + DNS setup.
+
+## Admin & Access consoles *(v1 — started)*
+
+| App | URL | Users |
+|-----|-----|--------|
+| **Admin console** | `admin.porttools.com.au` | Platform admins — admin accounts, manager accounts |
+| **Access register** | `access.porttools.com.au` | Port **managers** — staff ASIC + FOB (assigned ports only) |
+
+- Manager identity: `porttools.managers` + `porttools.manager_port_access` (Option A)
+- PCR/PMS app home pages: **port login only** (PMS also offers reports login); admin login removed from operator apps
+- Operator app `/login/admin` redirects to Admin console
+
+Deploy: `PortTools/apps/admin`, `PortTools/apps/access` as separate Vercel projects.
 
 ## Unified port login — Option 3 *(future)*
 

@@ -55,6 +55,30 @@ Update when adding or retiring a PortTools app.
 | **Status** | Ready to deploy |
 | **See** | `apps/hub/README.md`, `auth-roadmap.md` |
 
+## Admin console — admin.porttools.com.au
+
+| Field | Value |
+|-------|--------|
+| **Name** | PortTools Admin console |
+| **Subdomain** | `admin.porttools.com.au` |
+| **Repo** | `PortTools/apps/admin` (same GitHub repo as shared packages) |
+| **Database** | Supabase — `porttools` schema |
+| **Users** | Platform admins |
+| **Status** | Dev — managers panel + admin accounts |
+| **See** | `apps/admin/README.md` |
+
+## Access register — access.porttools.com.au
+
+| Field | Value |
+|-------|--------|
+| **Name** | PortTools Access register |
+| **Subdomain** | `access.porttools.com.au` |
+| **Repo** | `PortTools/apps/access` |
+| **Database** | Supabase — `porttools` + `movements` (FOB/ASIC data) |
+| **Users** | Port managers (assigned ports) |
+| **Status** | Dev |
+| **See** | `apps/access/README.md`, `Movements-Web/docs/access-register-spec.md` |
+
 ## Template (copy for new app)
 
 ```markdown

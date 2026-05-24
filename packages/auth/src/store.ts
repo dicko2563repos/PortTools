@@ -35,6 +35,15 @@ type ReportsUserRow = {
   isActive: boolean;
 };
 
+type ManagerRow = {
+  id: string;
+  email: string;
+  passwordHash: string;
+  isActive: boolean;
+  createdAt?: Date;
+  portAccess?: Array<{ portId: string }>;
+};
+
 /** Minimal Prisma-shaped client for the shared auth schema. */
 export type AuthStoreClient = {
   authPort: {
@@ -125,6 +134,36 @@ export type AuthStoreClient = {
       data: { passwordHash?: string; isActive?: boolean };
     }): Promise<unknown>;
   };
+  manager: {
+    findUnique(args: {
+      where: { email: string } | { id: string };
+      include?: { portAccess: true };
+    }): Promise<ManagerRow | null>;
+    findMany(args: {
+      orderBy: { email: "asc" | "desc" };
+      include?: { portAccess: true };
+    }): Promise<ManagerRow[]>;
+    create(args: {
+      data: {
+        email: string;
+        passwordHash: string;
+        isActive?: boolean;
+        portAccess?: { create: Array<{ portId: string }> };
+      };
+    }): Promise<{ id: string; email: string }>;
+    update(args: {
+      where: { id: string };
+      data: { passwordHash?: string; isActive?: boolean };
+    }): Promise<unknown>;
+    delete(args: { where: { id: string } }): Promise<unknown>;
+  };
+  managerPortAccess: {
+    deleteMany(args: { where: { managerId: string } }): Promise<unknown>;
+    createMany(args: {
+      data: Array<{ managerId: string; portId: string }>;
+      skipDuplicates?: boolean;
+    }): Promise<unknown>;
+  };
 };
 
 export type ChangeAdminPasswordFailureReason = "invalid_current" | "weak_password";
@@ -152,6 +191,19 @@ export type ResetAdminPasswordWithTokenResult =
 export type VerifiedPortLogin = { authPortId: string; code: string };
 export type VerifiedAdminLogin = { adminId: string; email: string };
 export type VerifiedReportsLogin = { reportsUserId: string; email: string };
+export type VerifiedManagerLogin = {
+  managerId: string;
+  email: string;
+  authPortIds: string[];
+};
+
+export type CreateManagerResult =
+  | { ok: true; manager: { id: string; email: string } }
+  | { ok: false; reason: "duplicate" | "weak_password" | "no_ports" };
+
+export type SetManagerPasswordResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" | "weak_password" };
 
 function normalizePortCode(code: string): string {
   return code.trim().toUpperCase();
@@ -162,6 +214,10 @@ function normalizeAdminEmail(email: string): string {
 }
 
 function normalizeReportsEmail(email: string): string {
+  return normalizeAdminEmail(email);
+}
+
+function normalizeManagerEmail(email: string): string {
   return normalizeAdminEmail(email);
 }
 
@@ -225,6 +281,128 @@ export function createAuthStore(client: AuthStoreClient) {
         where: { id: reportsUserId },
         data: { isActive },
       });
+    },
+
+    async verifyManagerLogin(
+      email: string,
+      password: string
+    ): Promise<VerifiedManagerLogin | null> {
+      const normalized = normalizeManagerEmail(email);
+      const manager = await client.manager.findUnique({
+        where: { email: normalized },
+        include: { portAccess: true },
+      });
+      if (!manager || !manager.isActive) return null;
+      if (!(await verifyPassword(password, manager.passwordHash))) return null;
+      const authPortIds = (manager.portAccess ?? []).map((row) => row.portId);
+      if (authPortIds.length === 0) return null;
+      return { managerId: manager.id, email: manager.email, authPortIds };
+    },
+
+    async listManagers(): Promise<
+      Array<{
+        id: string;
+        email: string;
+        isActive: boolean;
+        createdAt: Date;
+        authPortIds: string[];
+      }>
+    > {
+      const rows = await client.manager.findMany({
+        orderBy: { email: "asc" },
+        include: { portAccess: true },
+      });
+      return rows.map((row) => ({
+        id: row.id,
+        email: row.email,
+        isActive: row.isActive,
+        createdAt: row.createdAt ?? new Date(0),
+        authPortIds: (row.portAccess ?? []).map((access) => access.portId),
+      }));
+    },
+
+    async createManager(input: {
+      email: string;
+      password: string;
+      authPortIds: string[];
+      isActive?: boolean;
+    }): Promise<CreateManagerResult> {
+      if (!isStrongPassword(input.password)) {
+        return { ok: false, reason: "weak_password" };
+      }
+
+      const authPortIds = [...new Set(input.authPortIds)];
+      if (authPortIds.length === 0) {
+        return { ok: false, reason: "no_ports" };
+      }
+
+      const email = normalizeManagerEmail(input.email);
+      const existing = await client.manager.findUnique({ where: { email } });
+      if (existing) return { ok: false, reason: "duplicate" };
+
+      const manager = await client.manager.create({
+        data: {
+          email,
+          passwordHash: await hashPassword(input.password),
+          ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+          portAccess: {
+            create: authPortIds.map((portId) => ({ portId })),
+          },
+        },
+      });
+
+      return { ok: true, manager: { id: manager.id, email: manager.email } };
+    },
+
+    async setManagerPassword(
+      managerId: string,
+      password: string
+    ): Promise<SetManagerPasswordResult> {
+      if (!isStrongPassword(password)) {
+        return { ok: false, reason: "weak_password" };
+      }
+
+      const manager = await client.manager.findUnique({ where: { id: managerId } });
+      if (!manager) return { ok: false, reason: "not_found" };
+
+      await client.manager.update({
+        where: { id: managerId },
+        data: { passwordHash: await hashPassword(password) },
+      });
+
+      return { ok: true };
+    },
+
+    async setManagerActive(managerId: string, isActive: boolean): Promise<boolean> {
+      const manager = await client.manager.findUnique({ where: { id: managerId } });
+      if (!manager) return false;
+      await client.manager.update({
+        where: { id: managerId },
+        data: { isActive },
+      });
+      return true;
+    },
+
+    async setManagerPorts(managerId: string, authPortIds: string[]): Promise<boolean> {
+      const manager = await client.manager.findUnique({ where: { id: managerId } });
+      if (!manager) return false;
+
+      const uniquePortIds = [...new Set(authPortIds)];
+      if (uniquePortIds.length === 0) return false;
+
+      await client.managerPortAccess.deleteMany({ where: { managerId } });
+      await client.managerPortAccess.createMany({
+        data: uniquePortIds.map((portId) => ({ managerId, portId })),
+        skipDuplicates: true,
+      });
+      return true;
+    },
+
+    async deleteManager(managerId: string): Promise<boolean> {
+      const manager = await client.manager.findUnique({ where: { id: managerId } });
+      if (!manager) return false;
+      await client.manager.delete({ where: { id: managerId } });
+      return true;
     },
 
     async createPortWithCredential(input: {

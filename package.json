@@ -7,6 +7,10 @@
   ],
   "scripts": {
     "build:hub": "npm run build --workspace=@porttools/hub",
-    "dev:hub": "npm run dev --workspace=@porttools/hub"
+    "build:admin": "npm run build --workspace=@porttools/admin",
+    "build:access": "npm run build --workspace=@porttools/access",
+    "dev:hub": "npm run dev --workspace=@porttools/hub",
+    "dev:admin": "npm run dev --workspace=@porttools/admin",
+    "dev:access": "npm run dev --workspace=@porttools/access"
   }
 }

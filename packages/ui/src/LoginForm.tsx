@@ -5,16 +5,18 @@ import { useState } from "react";
 import { Button } from "./Button";
 import { Input } from "./Input";
 
-export type LoginMode = "port" | "admin" | "reports";
+export type LoginMode = "port" | "admin" | "reports" | "manager";
 
 export type LoginFormProps = {
   mode: LoginMode;
   portLoginEndpoint?: string;
   adminLoginEndpoint?: string;
   reportsLoginEndpoint?: string;
+  managerLoginEndpoint?: string;
   portRedirect?: string;
   adminRedirect?: string;
   reportsRedirect?: string;
+  managerRedirect?: string;
 };
 
 export function LoginForm({
@@ -22,9 +24,11 @@ export function LoginForm({
   portLoginEndpoint = "/api/auth/port/login",
   adminLoginEndpoint = "/api/auth/admin/login",
   reportsLoginEndpoint = "/api/auth/reports/login",
+  managerLoginEndpoint = "/api/auth/manager/login",
   portRedirect = "/port/record",
   adminRedirect = "/admin",
   reportsRedirect = "/reports",
+  managerRedirect = "/ports",
 }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +45,9 @@ export function LoginForm({
         ? portLoginEndpoint
         : mode === "admin"
           ? adminLoginEndpoint
-          : reportsLoginEndpoint;
+          : mode === "manager"
+            ? managerLoginEndpoint
+            : reportsLoginEndpoint;
     const body =
       mode === "port"
         ? { code: form.get("code"), password: form.get("password") }
@@ -61,7 +67,13 @@ export function LoginForm({
     }
 
     router.push(
-      mode === "port" ? portRedirect : mode === "admin" ? adminRedirect : reportsRedirect
+      mode === "port"
+        ? portRedirect
+        : mode === "admin"
+          ? adminRedirect
+          : mode === "manager"
+            ? managerRedirect
+            : reportsRedirect
     );
     router.refresh();
   }

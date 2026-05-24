@@ -12,6 +12,9 @@ export {
   type VerifiedAdminLogin,
   type VerifiedPortLogin,
   type VerifiedReportsLogin,
+  type VerifiedManagerLogin,
+  type CreateManagerResult,
+  type SetManagerPasswordResult,
 } from "./store";
 export {
   ADMIN_RESET_TOKEN_TTL_MS,

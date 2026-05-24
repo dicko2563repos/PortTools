@@ -5,12 +5,14 @@ type ForgotPasswordHelpProps = {
   mode: LoginMode;
   supportEmail: string;
   emailResetAvailable?: boolean;
+  adminForgotHref?: string;
 };
 
 export function ForgotPasswordHelp({
   mode,
   supportEmail,
   emailResetAvailable = false,
+  adminForgotHref = "/login/admin/forgot",
 }: ForgotPasswordHelpProps) {
   const mailto = `mailto:${supportEmail}?subject=${encodeURIComponent(
     mode === "port" ? "Port login — password help" : "Admin login — password help"
@@ -29,7 +31,7 @@ export function ForgotPasswordHelp({
         </>
       ) : emailResetAvailable ? (
         <>
-          <Link href="/login/admin/forgot" className="text-slate-900 underline hover:no-underline">
+          <Link href={adminForgotHref} className="text-slate-900 underline hover:no-underline">
             Reset by email
           </Link>
           {" or contact "}
