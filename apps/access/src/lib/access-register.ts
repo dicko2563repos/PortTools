@@ -113,6 +113,7 @@ const openCheckoutSelect = {
   id: true,
   holderType: true,
   visitorName: true,
+  visitorOrganization: true,
   reason: true,
   notes: true,
   signedOutAt: true,
@@ -189,6 +190,7 @@ export async function loadAccessRegisterSnapshot(portId: string) {
             id: d.checkouts[0].id,
             holderType: d.checkouts[0].holderType,
             visitorName: d.checkouts[0].visitorName,
+            visitorOrganization: d.checkouts[0].visitorOrganization,
             reason: d.checkouts[0].reason,
             notes: d.checkouts[0].notes,
             signedOutAt: d.checkouts[0].signedOutAt.toISOString(),
@@ -215,6 +217,7 @@ export type FobTimelineEntry =
       at: string;
       holderType: FobHolderType;
       visitorName: string;
+      visitorOrganization: string;
       reason: string;
       notes: string;
       signedOutAt: string;
@@ -262,6 +265,7 @@ export async function loadFobDeviceHistory(
       at: c.signedOutAt.toISOString(),
       holderType: c.holderType,
       visitorName: c.visitorName,
+      visitorOrganization: c.visitorOrganization,
       reason: c.reason,
       notes: c.notes,
       signedOutAt: c.signedOutAt.toISOString(),

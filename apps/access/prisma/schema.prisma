@@ -500,7 +500,9 @@ model FobCheckout {
 
   staffAsicRecordId String?       @map("staff_asic_record_id") @db.Uuid
 
-  visitorName       String        @default("") @map("visitor_name")
+  visitorName           String        @default("") @map("visitor_name")
+
+  visitorOrganization   String        @default("") @map("visitor_organization")
 
   reason            String        @default("")
 

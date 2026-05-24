@@ -21,6 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
         holderType?: "staff" | "visitor";
         staffAsicRecordId?: string;
         visitorName?: string;
+        visitorOrganization?: string;
         reason?: string;
         notes?: string;
       };
@@ -29,6 +30,7 @@ export async function POST(request: Request, context: RouteContext) {
       const holderType = body.holderType;
       const staffAsicRecordId = body.staffAsicRecordId?.trim() ?? "";
       const visitorName = body.visitorName?.trim() ?? "";
+      const visitorOrganization = body.visitorOrganization?.trim() ?? "";
       const reason = body.reason?.trim() ?? "";
       const notes = body.notes?.trim() ?? "";
 
@@ -90,6 +92,9 @@ export async function POST(request: Request, context: RouteContext) {
       if (!visitorName) {
         return NextResponse.json({ error: "Visitor name is required" }, { status: 400 });
       }
+      if (!visitorOrganization) {
+        return NextResponse.json({ error: "Visitor organization is required" }, { status: 400 });
+      }
       if (!reason) {
         return NextResponse.json({ error: "Reason is required for visitor checkouts" }, { status: 400 });
       }
@@ -100,6 +105,7 @@ export async function POST(request: Request, context: RouteContext) {
           portId,
           holderType: "visitor",
           visitorName,
+          visitorOrganization,
           reason,
           notes,
         },

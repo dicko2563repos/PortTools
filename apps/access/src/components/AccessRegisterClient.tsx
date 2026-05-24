@@ -30,6 +30,7 @@ type OpenCheckoutDto = {
   id: string;
   holderType: "staff" | "visitor";
   visitorName: string;
+  visitorOrganization: string;
   reason: string;
   notes: string;
   signedOutAt: string;
@@ -57,6 +58,7 @@ type TimelineEntry =
       at: string;
       holderType: "staff" | "visitor";
       visitorName: string;
+      visitorOrganization: string;
       reason: string;
       notes: string;
       signedOutAt: string;
@@ -80,6 +82,10 @@ function formatWhen(iso: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function formatVisitorLabel(name: string, organization: string): string {
+  return organization ? `${name} (${organization})` : name;
 }
 
 function expiryBadge(record: StaffAsicDto) {
@@ -330,6 +336,8 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
         holderType,
         staffAsicRecordId: holderType === "staff" ? form.get("staffAsicRecordId") : undefined,
         visitorName: holderType === "visitor" ? form.get("visitorName") : undefined,
+        visitorOrganization:
+          holderType === "visitor" ? form.get("visitorOrganization") : undefined,
         reason: form.get("reason"),
         notes: form.get("notes"),
       }),
@@ -635,8 +643,12 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
                                 </p>
                               ) : (
                                 <p>
-                                  Visitor {device.openCheckout.visitorName} —{" "}
-                                  {device.openCheckout.reason} (since{" "}
+                                  Visitor{" "}
+                                  {formatVisitorLabel(
+                                    device.openCheckout.visitorName,
+                                    device.openCheckout.visitorOrganization
+                                  )}{" "}
+                                  — {device.openCheckout.reason} (since{" "}
                                   {formatWhen(device.openCheckout.signedOutAt)})
                                 </p>
                               )}
@@ -805,7 +817,9 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
                       </p>
                     ) : (
                       <p>
-                        Visitor: {entry.visitorName} — {entry.reason}
+                        Visitor:{" "}
+                        {formatVisitorLabel(entry.visitorName, entry.visitorOrganization)} —{" "}
+                        {entry.reason}
                       </p>
                     )}
                     <p className="text-slate-600">
@@ -906,6 +920,14 @@ function CheckoutForm({
             Visitor name
             <input
               name="visitorName"
+              required
+              className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+            />
+          </label>
+          <label className="block text-sm">
+            Organization
+            <input
+              name="visitorOrganization"
               required
               className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
             />
