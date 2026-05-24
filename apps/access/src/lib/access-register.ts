@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import type { FobDeviceEventType, FobHolderType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSession, type SessionPayload } from "@/lib/session";
+import {
+  daysUntilAsicExpiry,
+  formatAsicExpiryMonth,
+  isAsicExpired,
+  isAsicExpiringSoon,
+} from "@/lib/asic-expiry";
 
 export const ASIC_EXPIRY_SOON_DAYS = 90;
 
@@ -73,6 +79,12 @@ export async function listManagerPorts(session: ManagerSession) {
     .filter(Boolean);
 }
 
+export {
+  asicExpiryToMonthInputValue,
+  formatAsicExpiryMonth,
+  parseAsicExpiryMonth,
+} from "@/lib/asic-expiry";
+
 export function parseDateOnly(raw: string): Date | null {
   const s = raw.trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
@@ -86,20 +98,15 @@ export function formatDateOnly(date: Date): string {
 }
 
 export function daysUntilExpiry(expiryDate: Date): number {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  const exp = new Date(expiryDate);
-  exp.setUTCHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
+  return daysUntilAsicExpiry(expiryDate);
 }
 
 export function isExpiringSoon(expiryDate: Date): boolean {
-  const days = daysUntilExpiry(expiryDate);
-  return days >= 0 && days <= ASIC_EXPIRY_SOON_DAYS;
+  return isAsicExpiringSoon(expiryDate, ASIC_EXPIRY_SOON_DAYS);
 }
 
 export function isExpired(expiryDate: Date): boolean {
-  return daysUntilExpiry(expiryDate) < 0;
+  return isAsicExpired(expiryDate);
 }
 
 const openCheckoutSelect = {
@@ -164,7 +171,7 @@ export async function loadAccessRegisterSnapshot(portId: string) {
       id: r.id,
       name: r.name,
       asicNumber: r.asicNumber,
-      expiryDate: formatDateOnly(r.expiryDate),
+      expiryDate: formatAsicExpiryMonth(r.expiryDate),
       notes: r.notes,
       daysUntilExpiry: daysUntilExpiry(r.expiryDate),
       expiringSoon: isExpiringSoon(r.expiryDate),

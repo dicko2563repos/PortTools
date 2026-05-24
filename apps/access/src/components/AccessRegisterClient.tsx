@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { readApiError } from "@/lib/client-api-error";
+import { asicExpiryToMonthInputValue } from "@/lib/asic-expiry";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@porttools/ui";
 
@@ -421,10 +422,11 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
                         />
                         <input
                           name="expiryDate"
-                          type="date"
-                          defaultValue={record.expiryDate}
+                          type="month"
+                          defaultValue={asicExpiryToMonthInputValue(record.expiryDate)}
                           className="rounded border border-slate-300 px-2 py-1 text-sm"
                           required
+                          aria-label="Expiry month"
                         />
                         <input
                           name="notes"
@@ -512,12 +514,13 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
                   />
                 </label>
                 <label className="block text-sm">
-                  Expiry date
+                  Expiry (MM/YY)
                   <input
                     name="expiryDate"
-                    type="date"
+                    type="month"
                     required
                     className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+                    aria-label="Expiry month"
                   />
                 </label>
                 <label className="block text-sm">

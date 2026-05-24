@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_ERRORS, parseJsonBody, withApiErrorHandling } from "@/lib/api-error";
 import {
-  formatDateOnly,
-  parseDateOnly,
+  formatAsicExpiryMonth,
+  parseAsicExpiryMonth,
   requireManagerSession,
   requireManagerPort,
 } from "@/lib/access-register";
@@ -30,7 +30,7 @@ export async function POST(request: Request, context: RouteContext) {
 
       const name = body.name?.trim() ?? "";
       const asicNumber = body.asicNumber?.trim() ?? "";
-      const expiryDate = body.expiryDate ? parseDateOnly(body.expiryDate) : null;
+      const expiryDate = body.expiryDate ? parseAsicExpiryMonth(body.expiryDate) : null;
       const notes = body.notes?.trim() ?? "";
 
       if (!name) {
@@ -40,7 +40,7 @@ export async function POST(request: Request, context: RouteContext) {
         return NextResponse.json({ error: "ASIC number is required" }, { status: 400 });
       }
       if (!expiryDate) {
-        return NextResponse.json({ error: "Valid expiry date is required" }, { status: 400 });
+        return NextResponse.json({ error: "Valid expiry month (MM/YY) is required" }, { status: 400 });
       }
 
       const record = await prisma.staffAsicRecord.create({
@@ -53,7 +53,7 @@ export async function POST(request: Request, context: RouteContext) {
             id: record.id,
             name: record.name,
             asicNumber: record.asicNumber,
-            expiryDate: formatDateOnly(record.expiryDate),
+            expiryDate: formatAsicExpiryMonth(record.expiryDate),
             notes: record.notes,
           },
         },
