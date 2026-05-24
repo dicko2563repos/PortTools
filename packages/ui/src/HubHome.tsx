@@ -28,6 +28,12 @@ export const DEFAULT_HUB_APPS: HubAppLink[] = [
     status: "live",
   },
   {
+    name: "Port Movement Reports",
+    description: "Cross-port movement summaries for finance and management (read-only).",
+    href: "https://pms.porttools.com.au/login/reports",
+    status: "live",
+  },
+  {
     name: "PTS Calc",
     description: "KPI times throughout an aircraft turnaround.",
     href: "https://ptscalc.porttools.com.au",

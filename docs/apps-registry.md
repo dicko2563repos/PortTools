@@ -24,10 +24,12 @@ Update when adding or retiring a PortTools app.
 | **Subdomain** | `pms.porttools.com.au` |
 | **Repo** | `C:\Projects\Movements-Web` |
 | **Database** | Shared Supabase with PCR; schema `movements` |
-| **Users** | Port (bi-weekly movement entry), Admin (ports/passwords) |
+| **Users** | Port (bi-weekly movement entry), Admin (ports/passwords), Reports (cross-port read-only) |
 | **Status** | Live |
 | **Docs** | `Movements-Web/docs/movements-rules-spec.md`, `memory-bank/` |
 | **Excel ref** | `Port Movement Summary.xlsm` in OneDrive Recording folder |
+
+| **Notes** | Reports login: `pms.porttools.com.au/login/reports` — linked from hub |
 
 ## PTS Calc
 

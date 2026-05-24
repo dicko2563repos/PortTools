@@ -1,6 +1,6 @@
 # PortTools Hub
 
-Static landing at **https://porttools.com.au** — links to PCR, PMS, and PTS Calc. No login on the hub itself.
+Static landing at **https://porttools.com.au** — links to PCR, PMS, PMS Reports, and PTS Calc. No login on the hub itself.
 
 ## Local dev
 
