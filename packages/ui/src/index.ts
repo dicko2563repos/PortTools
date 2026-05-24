@@ -23,4 +23,12 @@ export { HomeLink } from "./HomeLink";
 export { Input } from "./Input";
 export { LoginForm } from "./LoginForm";
 export type { LoginFormProps, LoginMode } from "./LoginForm";
+export { TabSessionGuard } from "./TabSessionGuard";
+export type { TabSessionGuardProps } from "./TabSessionGuard";
+export {
+  TAB_SESSION_KEYS,
+  markTabSessionActive,
+  clearTabSession,
+  hasTabSession,
+} from "./tab-session";
 export { cn } from "./cn";

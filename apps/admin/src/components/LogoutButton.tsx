@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@porttools/ui";
+import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -10,6 +10,7 @@ export function LogoutButton() {
 
   async function onLogout() {
     setBusy(true);
+    clearTabSession(TAB_SESSION_KEYS.admin);
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();

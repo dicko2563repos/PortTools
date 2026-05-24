@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "./Button";
 import { Input } from "./Input";
+import { markTabSessionActive, TAB_SESSION_KEYS } from "./tab-session";
 
 export type LoginMode = "port" | "admin" | "reports" | "manager";
 
@@ -64,6 +65,12 @@ export function LoginForm({
       const data = (await res.json()) as { error?: string };
       setError(data.error ?? "Login failed");
       return;
+    }
+
+    if (mode === "admin") {
+      markTabSessionActive(TAB_SESSION_KEYS.admin);
+    } else if (mode === "manager") {
+      markTabSessionActive(TAB_SESSION_KEYS.access);
     }
 
     router.push(
