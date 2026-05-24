@@ -1,14 +1,26 @@
+import {
+  PORTTOOLS_SESSION_COOKIE,
+  verifyOperatorSessionToken,
+} from "@porttools/auth";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "porttools_access_session";
 
-export type SessionPayload = {
-  type: "manager";
-  managerId: string;
-  email: string;
-  authPortIds: string[];
-};
+export type SessionPayload =
+  | {
+      type: "manager";
+      managerId: string;
+      email: string;
+      authPortIds: string[];
+    }
+  | {
+      type: "port";
+      authPortId: string;
+      movementsPortId: string;
+      portCode: string;
+      email: string;
+    };
 
 function secretKey(): Uint8Array {
   const secret = process.env.SESSION_SECRET;
@@ -49,8 +61,24 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-  return verifySessionToken(token);
+  if (token) {
+    const session = await verifySessionToken(token);
+    if (session) return session;
+  }
+
+  const operatorToken = cookieStore.get(PORTTOOLS_SESSION_COOKIE)?.value;
+  if (!operatorToken) return null;
+
+  const operator = await verifyOperatorSessionToken(operatorToken);
+  if (!operator || operator.type !== "port") return null;
+
+  return {
+    type: "port",
+    authPortId: operator.authPortId,
+    movementsPortId: operator.movementsPortId,
+    portCode: operator.portCode,
+    email: operator.email,
+  };
 }
 
 export async function setSessionCookie(payload: SessionPayload): Promise<void> {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { TabSessionGuard, TAB_SESSION_KEYS } from "@porttools/ui";
+import { AccessTabSessionGate } from "@/components/AccessTabSessionGate";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
-        <TabSessionGuard storageKey={TAB_SESSION_KEYS.access}>{children}</TabSessionGuard>
+        <AccessTabSessionGate>{children}</AccessTabSessionGate>
       </body>
     </html>
   );

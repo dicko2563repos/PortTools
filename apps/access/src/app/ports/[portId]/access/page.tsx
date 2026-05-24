@@ -9,7 +9,7 @@ type PageProps = { params: Promise<{ portId: string }> };
 
 export default async function AccessRegisterPage({ params }: PageProps) {
   const session = await getSession();
-  if (!session || session.type !== "manager") {
+  if (!session) {
     redirect("/login");
   }
 

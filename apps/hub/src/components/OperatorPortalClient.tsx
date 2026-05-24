@@ -120,15 +120,11 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
         {tab === "access" && (
           <TabPanel
             title="Access register"
-            description="Staff ASIC and FOB tracking. PIN gate will replace separate manager login in a later phase."
+            description="Staff ASIC and FOB tracking."
             href={accessRegisterUrl(session.movementsPortId)}
             buttonLabel="Open access register"
           />
         )}
-        <p className="mt-6 text-xs text-slate-500">
-          Phase 1: apps open in their existing sites. Phase 2 will sign you in automatically using
-          your portal session.
-        </p>
       </section>
     </div>
   );

@@ -4,7 +4,7 @@ import type { SessionPayload } from "@/lib/session";
 export async function authenticateManager(
   email: string,
   password: string
-): Promise<SessionPayload | null> {
+): Promise<Extract<SessionPayload, { type: "manager" }> | null> {
   const verified = await authStore.verifyManagerLogin(email, password);
   if (!verified) return null;
   return {

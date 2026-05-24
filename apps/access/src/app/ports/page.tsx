@@ -6,8 +6,9 @@ import { getSession } from "@/lib/session";
 
 export default async function PortsPage() {
   const session = await getSession();
-  if (!session || session.type !== "manager") {
-    redirect("/login");
+  if (!session) redirect("/login");
+  if (session.type === "port") {
+    redirect(`/ports/${session.movementsPortId}/access`);
   }
 
   const ports = await listManagerPorts(session);

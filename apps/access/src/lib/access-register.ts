@@ -11,15 +11,20 @@ import {
 
 export const ASIC_EXPIRY_SOON_DAYS = 90;
 
-type ManagerSession = SessionPayload;
+type AccessSession = SessionPayload;
 type PortInfo = { id: string; code: string; name: string };
 
-export async function requireManagerSession(): Promise<ManagerSession | NextResponse> {
+export async function requireAccessSession(): Promise<AccessSession | NextResponse> {
   const session = await getSession();
-  if (!session || session.type !== "manager") {
-    return NextResponse.json({ error: "Manager login required" }, { status: 401 });
+  if (!session) {
+    return NextResponse.json({ error: "Login required" }, { status: 401 });
   }
   return session;
+}
+
+/** @deprecated Use requireAccessSession — kept for existing route imports. */
+export async function requireManagerSession(): Promise<AccessSession | NextResponse> {
+  return requireAccessSession();
 }
 
 export async function resolveMovementsPort(portId: string): Promise<PortInfo | NextResponse> {
@@ -35,10 +40,17 @@ export async function resolveMovementsPort(portId: string): Promise<PortInfo | N
 
 export async function requireManagerPort(
   portId: string,
-  session: ManagerSession
+  session: AccessSession
 ): Promise<PortInfo | NextResponse> {
   const portResult = await resolveMovementsPort(portId);
   if (portResult instanceof NextResponse) return portResult;
+
+  if (session.type === "port") {
+    if (session.movementsPortId !== portId) {
+      return NextResponse.json({ error: "You do not have access to this port" }, { status: 403 });
+    }
+    return portResult;
+  }
 
   const authPort = await prisma.authPort.findUnique({
     where: { code: portResult.code },
@@ -51,7 +63,20 @@ export async function requireManagerPort(
   return portResult;
 }
 
-export async function listManagerPorts(session: ManagerSession) {
+export async function listManagerPorts(session: AccessSession) {
+  if (session.type === "port") {
+    const portResult = await resolveMovementsPort(session.movementsPortId);
+    if (portResult instanceof NextResponse) return [];
+
+    return [
+      {
+        authPortId: session.authPortId,
+        movementsPortId: portResult.id,
+        code: portResult.code,
+        name: portResult.name,
+      },
+    ];
+  }
   const authPorts = await prisma.authPort.findMany({
     where: { id: { in: session.authPortIds }, isActive: true },
     orderBy: { code: "asc" },

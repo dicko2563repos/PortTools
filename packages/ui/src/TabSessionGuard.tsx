@@ -8,6 +8,8 @@ export type TabSessionGuardProps = {
   storageKey: string;
   loginPath?: string;
   logoutEndpoint?: string;
+  /** When false, tab-session check is skipped (e.g. hub SSO port operators). */
+  enabled?: boolean;
   children: React.ReactNode;
 };
 
@@ -19,6 +21,7 @@ export function TabSessionGuard({
   storageKey,
   loginPath = "/login",
   logoutEndpoint = "/api/auth/logout",
+  enabled = true,
   children,
 }: TabSessionGuardProps) {
   const pathname = usePathname();
@@ -26,6 +29,11 @@ export function TabSessionGuard({
   const [allowed, setAllowed] = useState(true);
 
   useLayoutEffect(() => {
+    if (!enabled) {
+      setAllowed(true);
+      return;
+    }
+
     if (isLoginRoute(pathname, loginPath)) {
       setAllowed(true);
       return;
@@ -41,7 +49,7 @@ export function TabSessionGuard({
     }
 
     setAllowed(true);
-  }, [pathname, storageKey, loginPath, logoutEndpoint, router]);
+  }, [pathname, storageKey, loginPath, logoutEndpoint, router, enabled]);
 
   if (!allowed) {
     return null;
