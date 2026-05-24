@@ -1,12 +1,18 @@
 "use client";
 
-import Link from "next/link";
 import { readApiError } from "@/lib/client-api-error";
 import { asicExpiryToMonthInputValue } from "@/lib/asic-expiry";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@porttools/ui";
 
 type PortInfo = { id: string; code: string; name: string };
+
+type ManagerPortOption = {
+  movementsPortId: string;
+  code: string;
+  name: string;
+};
 
 type StaffAsicDto = {
   id: string;
@@ -95,8 +101,10 @@ function expiryBadge(record: StaffAsicDto) {
 }
 
 export function AccessRegisterClient({ port }: { port: PortInfo }) {
+  const router = useRouter();
   const base = `/api/ports/${port.id}/access`;
 
+  const [managerPorts, setManagerPorts] = useState<ManagerPortOption[]>([]);
   const [tab, setTab] = useState<Tab>("staff");
   const [staffAsicRecords, setStaffAsicRecords] = useState<StaffAsicDto[]>([]);
   const [fobDevices, setFobDevices] = useState<FobDeviceDto[]>([]);
@@ -131,6 +139,15 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch("/api/ports");
+      if (!res.ok) return;
+      const data = (await res.json()) as { ports: ManagerPortOption[] };
+      setManagerPorts(data.ports);
+    })();
+  }, []);
 
   async function loadHistory(deviceId: string) {
     setHistoryLoading(true);
@@ -348,14 +365,28 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link href="/ports" className="text-sm text-slate-600 underline hover:no-underline">
-            ← Ports
-          </Link>
-          <h1 className="mt-2 text-xl font-semibold">Access register</h1>
-          <p className="text-sm text-slate-600">
-            {port.code} — {port.name}
-          </p>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-semibold">Access register</h1>
+          {managerPorts.length > 1 ? (
+            <label className="mt-2 block text-sm text-slate-600">
+              Port
+              <select
+                value={port.id}
+                onChange={(e) => router.push(`/ports/${e.target.value}/access`)}
+                className="mt-1 block w-full max-w-xs rounded border border-slate-300 bg-white px-2 py-1.5 text-sm font-medium text-slate-900"
+              >
+                {managerPorts.map((p) => (
+                  <option key={p.movementsPortId} value={p.movementsPortId}>
+                    {p.code} — {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="mt-1 text-sm text-slate-600">
+              {port.code} — {port.name}
+            </p>
+          )}
         </div>
       </header>
 
