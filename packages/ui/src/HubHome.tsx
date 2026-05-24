@@ -29,7 +29,7 @@ export const DEFAULT_HUB_APPS: HubAppLink[] = [
   },
   {
     name: "PTS Calc",
-    description: "Precision approach and landing calculations.",
+    description: "KPI times throughout an aircraft turnaround.",
     href: "https://ptscalc.porttools.com.au",
     status: "live",
   },

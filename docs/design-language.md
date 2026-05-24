@@ -82,5 +82,5 @@ Default: **kgc@precisionaviation.com.au** (`NEXT_PUBLIC_SUPPORT_EMAIL`)
 - [ ] Port / Admin login routes match naming (`/login/port`, `/login/admin`) unless app has no port users
 - [ ] Primary/secondary buttons match above
 - [ ] Forgot-password points at support email
-- [ ] Favicon and `<title>` set (Compliance-Web still TODO for favicon)
+- [ ] Favicon and `<title>` set (shared `icon.svg` with PT mark on hub and apps)
 - [ ] Production on HTTPS only (session cookies use `Secure` in production)

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { cn } from "./cn";
+import { PlatformHomeLink } from "./PlatformHomeLink";
 
 type AppHomeLinksProps = {
   productName: string;
   portLoginHref?: string;
   adminLoginHref?: string;
+  platformHomeHref?: string | null;
   className?: string;
 };
 
@@ -12,15 +14,19 @@ export function AppHomeLinks({
   productName,
   portLoginHref = "/login/port",
   adminLoginHref = "/login/admin",
+  platformHomeHref = "https://porttools.com.au",
   className,
 }: AppHomeLinksProps) {
   return (
     <main
       className={cn(
-        "mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-8 p-8",
+        "relative mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-8 p-8",
         className
       )}
     >
+      {platformHomeHref && (
+        <PlatformHomeLink href={platformHomeHref} className="absolute left-8 top-8" />
+      )}
       <div className="text-center">
         <h1 className="leading-tight tracking-tight">
           <span className="block text-3xl font-bold text-slate-900 sm:text-4xl">
