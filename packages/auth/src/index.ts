@@ -12,4 +12,8 @@ export {
   resetLoginRateLimitMemoryForTests,
   type LoginRateLimitResult,
   type LoginRateLimitScope,
+<<<<<<< HEAD
 } from "./login-rate-limit";
+=======
+} from "./login-rate-limit";
+>>>>>>> 59232ee6f7e5cd60e4d087da50b88e1e57622b45
