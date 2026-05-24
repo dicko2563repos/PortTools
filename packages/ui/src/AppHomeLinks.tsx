@@ -6,6 +6,7 @@ type AppHomeLinksProps = {
   productName: string;
   portLoginHref?: string;
   adminLoginHref?: string;
+  reportsLoginHref?: string | null;
   platformHomeHref?: string | null;
   className?: string;
 };
@@ -14,6 +15,7 @@ export function AppHomeLinks({
   productName,
   portLoginHref = "/login/port",
   adminLoginHref = "/login/admin",
+  reportsLoginHref = null,
   platformHomeHref = "https://porttools.com.au",
   className,
 }: AppHomeLinksProps) {
@@ -50,6 +52,14 @@ export function AppHomeLinks({
         >
           Admin login
         </Link>
+        {reportsLoginHref && (
+          <Link
+            href={reportsLoginHref}
+            className="rounded-lg border border-slate-300 px-4 py-3 text-center hover:bg-white"
+          >
+            Reports login
+          </Link>
+        )}
       </nav>
     </main>
   );

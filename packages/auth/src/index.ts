@@ -7,6 +7,7 @@ export {
   type ChangeAdminPasswordResult,
   type VerifiedAdminLogin,
   type VerifiedPortLogin,
+  type VerifiedReportsLogin,
 } from "./store";
 export { clientIpFromRequest } from "./client-ip";
 export {

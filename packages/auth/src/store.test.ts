@@ -22,6 +22,11 @@ function mockClient(overrides?: Partial<AuthStoreClient>): AuthStoreClient {
       create: vi.fn(),
       update: vi.fn(),
     },
+    reportsUser: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
     ...overrides,
   } as AuthStoreClient;
 }
@@ -82,6 +87,46 @@ describe("changeAdminPassword", () => {
     expect(update).toHaveBeenCalledWith({
       where: { id: ADMIN_ID },
       data: { passwordHash: expect.any(String) },
+    });
+  });
+});
+
+describe("verifyReportsLogin", () => {
+  it("rejects inactive reports users", async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      id: "reports-1",
+      email: "reports@example.com",
+      passwordHash: await hashPassword("password-ok"),
+      isActive: false,
+    });
+    const client = mockClient({
+      reportsUser: { findUnique, create: vi.fn(), update: vi.fn() },
+    });
+    const store = createAuthStore(client);
+
+    const result = await store.verifyReportsLogin("reports@example.com", "password-ok");
+
+    expect(result).toBeNull();
+  });
+
+  it("accepts active reports users with valid password", async () => {
+    const password = "password-ok";
+    const findUnique = vi.fn().mockResolvedValue({
+      id: "reports-1",
+      email: "reports@example.com",
+      passwordHash: await hashPassword(password),
+      isActive: true,
+    });
+    const client = mockClient({
+      reportsUser: { findUnique, create: vi.fn(), update: vi.fn() },
+    });
+    const store = createAuthStore(client);
+
+    const result = await store.verifyReportsLogin("reports@example.com", password);
+
+    expect(result).toEqual({
+      reportsUserId: "reports-1",
+      email: "reports@example.com",
     });
   });
 });

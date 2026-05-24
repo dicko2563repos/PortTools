@@ -14,6 +14,13 @@ type AuthAdminRow = {
   passwordHash: string;
 };
 
+type ReportsUserRow = {
+  id: string;
+  email: string;
+  passwordHash: string;
+  isActive: boolean;
+};
+
 /** Minimal Prisma-shaped client for the shared auth schema. */
 export type AuthStoreClient = {
   authPort: {
@@ -63,6 +70,18 @@ export type AuthStoreClient = {
       data: { passwordHash: string };
     }): Promise<unknown>;
   };
+  reportsUser: {
+    findUnique(args: {
+      where: { email: string } | { id: string };
+    }): Promise<ReportsUserRow | null>;
+    create(args: {
+      data: { email: string; passwordHash: string; isActive?: boolean };
+    }): Promise<{ id: string; email: string }>;
+    update(args: {
+      where: { id: string };
+      data: { passwordHash?: string; isActive?: boolean };
+    }): Promise<unknown>;
+  };
 };
 
 export type ChangeAdminPasswordFailureReason = "invalid_current" | "weak_password";
@@ -73,6 +92,7 @@ export type ChangeAdminPasswordResult =
 
 export type VerifiedPortLogin = { authPortId: string; code: string };
 export type VerifiedAdminLogin = { adminId: string; email: string };
+export type VerifiedReportsLogin = { reportsUserId: string; email: string };
 
 function normalizePortCode(code: string): string {
   return code.trim().toUpperCase();
@@ -80,6 +100,10 @@ function normalizePortCode(code: string): string {
 
 function normalizeAdminEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function normalizeReportsEmail(email: string): string {
+  return normalizeAdminEmail(email);
 }
 
 export function createAuthStore(client: AuthStoreClient) {
@@ -101,6 +125,43 @@ export function createAuthStore(client: AuthStoreClient) {
       if (!admin) return null;
       if (!(await verifyPassword(password, admin.passwordHash))) return null;
       return { adminId: admin.id, email: admin.email };
+    },
+
+    async verifyReportsLogin(email: string, password: string): Promise<VerifiedReportsLogin | null> {
+      const normalized = normalizeReportsEmail(email);
+      const user = await client.reportsUser.findUnique({ where: { email: normalized } });
+      if (!user || !user.isActive) return null;
+      if (!(await verifyPassword(password, user.passwordHash))) return null;
+      return { reportsUserId: user.id, email: user.email };
+    },
+
+    async createReportsUser(input: {
+      email: string;
+      password: string;
+      isActive?: boolean;
+    }): Promise<{ id: string; email: string }> {
+      const email = normalizeReportsEmail(input.email);
+      return client.reportsUser.create({
+        data: {
+          email,
+          passwordHash: await hashPassword(input.password),
+          ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+        },
+      });
+    },
+
+    async setReportsUserPassword(reportsUserId: string, password: string): Promise<void> {
+      await client.reportsUser.update({
+        where: { id: reportsUserId },
+        data: { passwordHash: await hashPassword(password) },
+      });
+    },
+
+    async setReportsUserActive(reportsUserId: string, isActive: boolean): Promise<void> {
+      await client.reportsUser.update({
+        where: { id: reportsUserId },
+        data: { isActive },
+      });
     },
 
     async createPortWithCredential(input: {

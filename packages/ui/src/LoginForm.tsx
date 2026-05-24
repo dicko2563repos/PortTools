@@ -5,22 +5,26 @@ import { useState } from "react";
 import { Button } from "./Button";
 import { Input } from "./Input";
 
-export type LoginMode = "port" | "admin";
+export type LoginMode = "port" | "admin" | "reports";
 
 export type LoginFormProps = {
   mode: LoginMode;
   portLoginEndpoint?: string;
   adminLoginEndpoint?: string;
+  reportsLoginEndpoint?: string;
   portRedirect?: string;
   adminRedirect?: string;
+  reportsRedirect?: string;
 };
 
 export function LoginForm({
   mode,
   portLoginEndpoint = "/api/auth/port/login",
   adminLoginEndpoint = "/api/auth/admin/login",
+  reportsLoginEndpoint = "/api/auth/reports/login",
   portRedirect = "/port/record",
   adminRedirect = "/admin",
+  reportsRedirect = "/reports",
 }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +36,12 @@ export function LoginForm({
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const endpoint = mode === "port" ? portLoginEndpoint : adminLoginEndpoint;
+    const endpoint =
+      mode === "port"
+        ? portLoginEndpoint
+        : mode === "admin"
+          ? adminLoginEndpoint
+          : reportsLoginEndpoint;
     const body =
       mode === "port"
         ? { code: form.get("code"), password: form.get("password") }
@@ -51,7 +60,9 @@ export function LoginForm({
       return;
     }
 
-    router.push(mode === "port" ? portRedirect : adminRedirect);
+    router.push(
+      mode === "port" ? portRedirect : mode === "admin" ? adminRedirect : reportsRedirect
+    );
     router.refresh();
   }
 
