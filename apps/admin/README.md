@@ -18,6 +18,7 @@ Open http://localhost:3002
 - Root directory: `apps/admin`
 - Install: `cd ../.. && npm install`
 - Env: `DATABASE_URL`, `SESSION_SECRET`, optional Resend for forgot-password
+- **Create port** provisions `porttools`, `public`, and `movements` rows (via `@porttools/auth`)
 
 ## DNS
 

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   AdminAdminsPanel,
+  AdminAuthPortsPanel,
   AdminChangePasswordForm,
   AdminManagersPanel,
 } from "@porttools/ui";
@@ -39,6 +40,7 @@ export default async function AdminConsolePage() {
 
       <div className="space-y-12">
         <AdminChangePasswordForm />
+        <AdminAuthPortsPanel />
         <AdminAdminsPanel currentAdminId={session.adminId} />
         <AdminManagersPanel />
       </div>

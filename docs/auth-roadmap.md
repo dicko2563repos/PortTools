@@ -67,6 +67,8 @@ See `apps/hub/README.md` for Vercel + DNS setup.
 
 Deploy: `PortTools/apps/admin`, `PortTools/apps/access` as separate Vercel projects.
 
+Port create (Admin console, PCR admin, or PMS admin) uses `@porttools/auth` **`provisionPortEverywhere`** — writes `porttools`, `public.ports`, and `movements.ports` in one transaction (matched by **code**).
+
 ## Unified port login — Option 3 *(future)*
 
 **Goal:** User logs in once at hub (or any app), accesses all apps as that port.

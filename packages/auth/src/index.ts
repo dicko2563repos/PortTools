@@ -33,3 +33,12 @@ export {
   type LoginRateLimitResult,
   type LoginRateLimitScope,
 } from "./login-rate-limit";
+export {
+  provisionPortEverywhere,
+  syncPortMetaEverywhere,
+  normalizePortCode,
+  type PortProvisionTx,
+  type ProvisionPortInput,
+  type ProvisionPortResult,
+  type SyncPortMetaInput,
+} from "./port-provision";
