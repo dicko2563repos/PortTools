@@ -88,6 +88,76 @@ function formatVisitorLabel(name: string, organization: string): string {
   return organization ? `${name} (${organization})` : name;
 }
 
+function FobHistoryPanel({
+  label,
+  history,
+  historyLoading,
+  onClose,
+}: {
+  label: string;
+  history: TimelineEntry[];
+  historyLoading: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div className="mt-2 space-y-2 rounded border border-slate-200 bg-slate-50 p-3">
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-sm font-medium">{label} history</h3>
+        <button
+          type="button"
+          className="text-sm text-slate-600 underline hover:no-underline"
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
+      {historyLoading && <p className="text-sm text-slate-500">Loading…</p>}
+      {!historyLoading && history.length === 0 && (
+        <p className="text-sm text-slate-500">No history yet</p>
+      )}
+      <ul className="space-y-3">
+        {history.map((entry) => (
+          <li key={`${entry.kind}-${entry.id}`} className="border-l-2 border-slate-200 pl-3 text-sm">
+            <p className="text-slate-500">{formatWhen(entry.at)}</p>
+            {entry.kind === "checkout" ? (
+              <div>
+                <p className="font-medium">
+                  {entry.signedInAt ? "Checkout (returned)" : "Signed out"}
+                </p>
+                {entry.holderType === "staff" && entry.staffAsic ? (
+                  <p>
+                    Staff: {entry.staffAsic.name} ({entry.staffAsic.asicNumber})
+                  </p>
+                ) : (
+                  <p>
+                    Visitor:{" "}
+                    {formatVisitorLabel(entry.visitorName, entry.visitorOrganization)} —{" "}
+                    {entry.reason}
+                  </p>
+                )}
+                <p className="text-slate-600">
+                  Out {formatWhen(entry.signedOutAt)}
+                  {entry.signedInAt ? ` · In ${formatWhen(entry.signedInAt)}` : ""}
+                </p>
+                {entry.notes && <p className="text-slate-500">{entry.notes}</p>}
+              </div>
+            ) : entry.kind === "renamed" ? (
+              <p>
+                Renamed: {entry.oldLabel} → {entry.newLabel}
+                {entry.adminEmail ? ` (${entry.adminEmail})` : ""}
+              </p>
+            ) : entry.kind === "deleted" ? (
+              <p>Deleted{entry.adminEmail ? ` by ${entry.adminEmail}` : ""}</p>
+            ) : (
+              <p>Restored{entry.adminEmail ? ` by ${entry.adminEmail}` : ""}</p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function expiryBadge(record: StaffAsicDto) {
   if (record.expired) {
     return (
@@ -168,9 +238,19 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
     setHistory(data.timeline);
   }
 
-  function openHistory(deviceId: string) {
+  function toggleHistory(deviceId: string) {
+    if (historyFobId === deviceId) {
+      setHistoryFobId(null);
+      setHistory([]);
+      return;
+    }
     setHistoryFobId(deviceId);
     void loadHistory(deviceId);
+  }
+
+  function closeHistory() {
+    setHistoryFobId(null);
+    setHistory([]);
   }
 
   async function onCreateStaff(e: React.FormEvent<HTMLFormElement>) {
@@ -678,9 +758,9 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
                           <button
                             type="button"
                             className="text-slate-600 underline hover:no-underline"
-                            onClick={() => openHistory(device.id)}
+                            onClick={() => toggleHistory(device.id)}
                           >
-                            History
+                            {historyFobId === device.id ? "Close history" : "History"}
                           </button>
                           <button
                             type="button"
@@ -708,6 +788,14 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
                           busy={busy}
                           onSubmit={onCheckout}
                           onCancel={() => setCheckoutFobId(null)}
+                        />
+                      )}
+                      {historyFobId === device.id && (
+                        <FobHistoryPanel
+                          label={device.label}
+                          history={history}
+                          historyLoading={historyLoading}
+                          onClose={closeHistory}
                         />
                       )}
                     </div>
@@ -754,93 +842,38 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
               <li className="p-3 text-sm text-slate-500">No deleted FOBs</li>
             )}
             {deletedFobDevices.map((device) => (
-              <li key={device.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
-                <div>
-                  <span className="font-medium">{device.label}</span>
-                  <p className="text-sm text-slate-500">
-                    Deleted {formatWhen(device.deletedAt)}
-                  </p>
-                </div>
-                <div className="flex gap-2 text-sm">
-                  <button
-                    type="button"
-                    className="text-slate-600 underline hover:no-underline"
-                    onClick={() => openHistory(device.id)}
-                  >
-                    History
-                  </button>
-                  <button
-                    type="button"
-                    className="text-slate-700 underline hover:no-underline"
-                    onClick={() => restoreFob(device.id)}
-                  >
-                    Restore
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {historyFobId && (
-        <section className="rounded border border-slate-200 bg-white p-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="font-medium">FOB history</h2>
-            <button
-              type="button"
-              className="text-sm text-slate-600 underline hover:no-underline"
-              onClick={() => {
-                setHistoryFobId(null);
-                setHistory([]);
-              }}
-            >
-              Close
-            </button>
-          </div>
-          {historyLoading && <p className="mt-2 text-sm text-slate-500">Loading…</p>}
-          {!historyLoading && history.length === 0 && (
-            <p className="mt-2 text-sm text-slate-500">No history yet</p>
-          )}
-          <ul className="mt-3 space-y-3">
-            {history.map((entry) => (
-              <li key={`${entry.kind}-${entry.id}`} className="border-l-2 border-slate-200 pl-3 text-sm">
-                <p className="text-slate-500">{formatWhen(entry.at)}</p>
-                {entry.kind === "checkout" ? (
+              <li key={device.id} className="p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-medium">
-                      {entry.signedInAt ? "Checkout (returned)" : "Signed out"}
+                    <span className="font-medium">{device.label}</span>
+                    <p className="text-sm text-slate-500">
+                      Deleted {formatWhen(device.deletedAt)}
                     </p>
-                    {entry.holderType === "staff" && entry.staffAsic ? (
-                      <p>
-                        Staff: {entry.staffAsic.name} ({entry.staffAsic.asicNumber})
-                      </p>
-                    ) : (
-                      <p>
-                        Visitor:{" "}
-                        {formatVisitorLabel(entry.visitorName, entry.visitorOrganization)} —{" "}
-                        {entry.reason}
-                      </p>
-                    )}
-                    <p className="text-slate-600">
-                      Out {formatWhen(entry.signedOutAt)}
-                      {entry.signedInAt ? ` · In ${formatWhen(entry.signedInAt)}` : ""}
-                    </p>
-                    {entry.notes && <p className="text-slate-500">{entry.notes}</p>}
                   </div>
-                ) : entry.kind === "renamed" ? (
-                  <p>
-                    Renamed: {entry.oldLabel} → {entry.newLabel}
-                    {entry.adminEmail ? ` (${entry.adminEmail})` : ""}
-                  </p>
-                ) : entry.kind === "deleted" ? (
-                  <p>
-                    Deleted{entry.adminEmail ? ` by ${entry.adminEmail}` : ""}
-                  </p>
-                ) : (
-                  <p>
-                    Restored{entry.adminEmail ? ` by ${entry.adminEmail}` : ""}
-                  </p>
+                  <div className="flex gap-2 text-sm">
+                    <button
+                      type="button"
+                      className="text-slate-600 underline hover:no-underline"
+                      onClick={() => toggleHistory(device.id)}
+                    >
+                      {historyFobId === device.id ? "Close history" : "History"}
+                    </button>
+                    <button
+                      type="button"
+                      className="text-slate-700 underline hover:no-underline"
+                      onClick={() => restoreFob(device.id)}
+                    >
+                      Restore
+                    </button>
+                  </div>
+                </div>
+                {historyFobId === device.id && (
+                  <FobHistoryPanel
+                    label={device.label}
+                    history={history}
+                    historyLoading={historyLoading}
+                    onClose={closeHistory}
+                  />
                 )}
               </li>
             ))}
