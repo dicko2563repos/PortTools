@@ -2,6 +2,7 @@
 export const TAB_SESSION_KEYS = {
   admin: "porttools_admin_tab",
   access: "porttools_access_tab",
+  hub: "porttools_hub_tab",
 } as const;
 
 export function markTabSessionActive(key: string): void {

@@ -33,6 +33,7 @@ export function porttoolsSessionCookieOptions(): {
   domain?: string;
 } {
   const domain = getPorttoolsCookieDomain();
+  // No maxAge — browser session cookie; JWT expiry is the backstop (24h).
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -40,4 +41,15 @@ export function porttoolsSessionCookieOptions(): {
     path: "/",
     ...(domain ? { domain } : {}),
   };
+}
+
+/** CSP value so PCR/PMS/Access can load inside the hub portal iframe. */
+export function operatorPortalFrameAncestorsHeader(): string {
+  const origins = new Set(["'self'", "https://porttools.com.au", "https://www.porttools.com.au"]);
+  const hubUrl = process.env.NEXT_PUBLIC_HUB_APP_URL?.trim();
+  if (hubUrl) origins.add(hubUrl);
+  if (process.env.NODE_ENV !== "production") {
+    origins.add("http://localhost:3000");
+  }
+  return `frame-ancestors ${[...origins].join(" ")}`;
 }

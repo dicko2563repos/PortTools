@@ -47,6 +47,7 @@ export {
   PORTTOOLS_SESSION_COOKIE,
   porttoolsSessionCookieOptions,
   getPorttoolsCookieDomain,
+  operatorPortalFrameAncestorsHeader,
   type OperatorSessionPayload,
   type PortOperatorSession,
   type ReportsOperatorSession,

@@ -77,6 +77,8 @@ export function LoginForm({
       markTabSessionActive(TAB_SESSION_KEYS.admin);
     } else if (mode === "manager") {
       markTabSessionActive(TAB_SESSION_KEYS.access);
+    } else if (mode === "operator") {
+      markTabSessionActive(TAB_SESSION_KEYS.hub);
     }
 
     router.push(

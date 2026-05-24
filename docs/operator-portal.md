@@ -13,19 +13,19 @@ Platform admin stays at **admin.porttools.com.au**.
 - `porttools.ports.login_email` — unique port operator email
 - `porttools.ports.reminders_enabled` — flag for future compliance reminder cron
 - Hub login at `/` → `/portal` with tabs (deep links to existing apps)
-- Shared session cookie `porttools_session` on `.porttools.com.au` (JWT, 7 days)
+- Shared session cookie `porttools_session` on `.porttools.com.au` (browser session cookie; JWT backstop 24h)
 - Admin console: login email required when creating a port
 - PCR/PMS port **code** login unchanged on each app home page
 
-## Phase 2 (this release)
+## Phase 2 (shipped)
 
 - PCR, PMS, and Access read `porttools_session` when the app cookie is absent — portal tabs open signed in
-- Hub portal copy updated (no separate login for port operators)
-- Access: port-operator sessions skip the tab-session gate; manager login unchanged
+- Hub portal embeds each app in a tab (`iframe`); **Open in new tab** link in header
+- Hub tab-session gate — closing the browser tab/window requires login again (same pattern as admin/access)
+- Access: port-operator sessions skip the access tab gate; manager login unchanged
 
 ## Phase 3 (planned)
 
-- Embed app UIs in hub tabs (or reverse proxy)
 - Access register PIN gate instead of manager login
 - Compliance reminder cron emails when `reminders_enabled`
 

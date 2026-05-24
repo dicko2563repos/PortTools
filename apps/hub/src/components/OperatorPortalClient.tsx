@@ -6,7 +6,7 @@ import { Button } from "@porttools/ui";
 import {
   accessRegisterUrl,
   pcrRecordUrl,
-  pmsHomeUrl,
+  pmsMovementsUrl,
   pmsReportsUrl,
 } from "@/lib/app-urls";
 
@@ -37,40 +37,40 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
   }
 
   if (session.type === "reports") {
+    const href = pmsReportsUrl();
     return (
-      <div className="space-y-6">
+      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-4">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold">Movement reports</h1>
             <p className="text-sm text-slate-600">{session.email}</p>
           </div>
-          <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
-            {busy ? "Signing out…" : "Sign out"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <OpenInNewTab href={href} />
+            <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
+              {busy ? "Signing out…" : "Sign out"}
+            </Button>
+          </div>
         </header>
-        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-700">
-            Open the cross-port movement reports view in Port Movement Summary.
-          </p>
-          <a
-            href={pmsReportsUrl()}
-            className="mt-4 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
-          >
-            Open reports
-          </a>
-        </section>
+        <AppFrame title="Movement reports" src={href} />
       </div>
     );
   }
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "compliance", label: "Compliance (PCR)" },
-    { id: "movements", label: "Movements (PMS)" },
-    { id: "access", label: "Access register" },
+  const tabs: { id: Tab; label: string; href: string }[] = [
+    { id: "compliance", label: "Compliance (PCR)", href: pcrRecordUrl() },
+    { id: "movements", label: "Movements (PMS)", href: pmsMovementsUrl() },
+    {
+      id: "access",
+      label: "Access register",
+      href: accessRegisterUrl(session.movementsPortId),
+    },
   ];
 
+  const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0]!;
+
   return (
-    <div className="space-y-6">
+    <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-4">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">
@@ -78,9 +78,12 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
           </h1>
           <p className="text-sm text-slate-600">PortTools operator portal</p>
         </div>
-        <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
-          {busy ? "Signing out…" : "Sign out"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <OpenInNewTab href={activeTab.href} />
+          <Button type="button" variant="secondary" disabled={busy} onClick={onLogout}>
+            {busy ? "Signing out…" : "Sign out"}
+          </Button>
+        </div>
       </header>
 
       <nav className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
@@ -100,57 +103,30 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
         ))}
       </nav>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        {tab === "compliance" && (
-          <TabPanel
-            title="Port Compliance Record"
-            description="Yearly compliance inspections and archive."
-            href={pcrRecordUrl()}
-            buttonLabel="Open compliance record"
-          />
-        )}
-        {tab === "movements" && (
-          <TabPanel
-            title="Port Movement Summary"
-            description="Bi-weekly aircraft movement entry and period reports."
-            href={pmsHomeUrl()}
-            buttonLabel="Open movement summary"
-          />
-        )}
-        {tab === "access" && (
-          <TabPanel
-            title="Access register"
-            description="Staff ASIC and FOB tracking."
-            href={accessRegisterUrl(session.movementsPortId)}
-            buttonLabel="Open access register"
-          />
-        )}
-      </section>
+      <AppFrame key={activeTab.href} title={activeTab.label} src={activeTab.href} />
     </div>
   );
 }
 
-function TabPanel({
-  title,
-  description,
-  href,
-  buttonLabel,
-}: {
-  title: string;
-  description: string;
-  href: string;
-  buttonLabel: string;
-}) {
+function OpenInNewTab({ href }: { href: string }) {
   return (
-    <div>
-      <h2 className="font-medium text-slate-900">{title}</h2>
-      <p className="mt-1 text-sm text-slate-600">{description}</p>
-      <a
-        href={href}
-        className="mt-4 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-800"
-      >
-        {buttonLabel}
-      </a>
-    </div>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-sm text-slate-600 underline hover:text-slate-900"
+    >
+      Open in new tab
+    </a>
+  );
+}
+
+function AppFrame({ title, src }: { title: string; src: string }) {
+  return (
+    <iframe
+      title={title}
+      src={src}
+      className="min-h-0 w-full flex-1 rounded-xl border border-slate-200 bg-white"
+    />
   );
 }

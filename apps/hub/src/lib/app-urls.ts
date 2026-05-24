@@ -11,6 +11,10 @@ export function pmsHomeUrl(): string {
   return PMS_APP_URL;
 }
 
+export function pmsMovementsUrl(): string {
+  return `${PMS_APP_URL}/port/movements`;
+}
+
 export function accessRegisterUrl(movementsPortId: string): string {
   return `${ACCESS_APP_URL}/ports/${movementsPortId}/access`;
 }

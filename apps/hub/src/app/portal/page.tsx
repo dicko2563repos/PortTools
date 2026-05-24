@@ -11,7 +11,7 @@ export default async function PortalPage() {
 
   if (session.type === "reports") {
     return (
-      <main className="mx-auto max-w-3xl p-8">
+      <main className="flex min-h-screen flex-col p-4 sm:p-6">
         <OperatorPortalClient session={{ type: "reports", email: session.email }} />
       </main>
     );
@@ -23,7 +23,7 @@ export default async function PortalPage() {
   });
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="flex min-h-screen flex-col p-4 sm:p-6">
       <OperatorPortalClient
         session={{
           type: "port",
