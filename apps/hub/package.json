@@ -3,14 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev -p 3000",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@porttools/auth": "0.1.0",
     "@porttools/tailwind-config": "0.1.0",
     "@porttools/ui": "0.1.0",
+    "@prisma/client": "^6.19.3",
+    "jose": "^6.0.11",
     "next": "^15.3.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
@@ -23,7 +27,11 @@
     "@types/react-dom": "^19.1.5",
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.2",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
   }
 }

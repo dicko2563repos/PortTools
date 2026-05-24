@@ -6,6 +6,7 @@ export type LoginRateLimitScope =
   | "admin"
   | "reports"
   | "manager"
+  | "operator"
   | "admin_forgot"
   | "admin_reset";
 

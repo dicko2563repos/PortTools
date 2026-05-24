@@ -69,11 +69,13 @@ Deploy: `PortTools/apps/admin`, `PortTools/apps/access` as separate Vercel proje
 
 Port create (Admin console, PCR admin, or PMS admin) uses `@porttools/auth` **`provisionPortEverywhere`** — writes `porttools`, `public.ports`, and `movements.ports` in one transaction (matched by **code**).
 
-## Unified port login — Option 3 *(future)*
+## Unified port login — Option 3 *(in progress)*
 
-**Goal:** User logs in once at hub (or any app), accesses all apps as that port.
+**Phase 1 (hub):** `porttools.com.au` login with port **login email** + password; tabbed portal; shared cookie `porttools_session` on `.porttools.com.au`. See `docs/operator-portal.md`.
 
-Likely steps after Option 2:
+**Phase 2:** PCR/PMS auto-login from shared cookie; embed UIs; Access PIN gate; reminder cron.
+
+Original Option 3 steps:
 
 1. Hub login sets cookie on `.porttools.com.au`
 2. Same `SESSION_SECRET` across Vercel projects

@@ -11,6 +11,7 @@ export {
   type SetAdminPasswordResult,
   type VerifiedAdminLogin,
   type VerifiedPortLogin,
+  type VerifiedPortEmailLogin,
   type VerifiedReportsLogin,
   type VerifiedManagerLogin,
   type CreateManagerResult,
@@ -42,3 +43,18 @@ export {
   type ProvisionPortResult,
   type SyncPortMetaInput,
 } from "./port-provision";
+export {
+  PORTTOOLS_SESSION_COOKIE,
+  porttoolsSessionCookieOptions,
+  getPorttoolsCookieDomain,
+  type OperatorSessionPayload,
+  type PortOperatorSession,
+  type ReportsOperatorSession,
+} from "./operator-session";
+export {
+  createOperatorSessionToken,
+  verifyOperatorSessionToken,
+} from "./operator-session-jwt";
+export function normalizePortLoginEmail(email: string): string {
+  return email.trim().toLowerCase();
+}

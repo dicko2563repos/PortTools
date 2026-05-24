@@ -9,6 +9,7 @@ type AuthPortRow = {
   id: string;
   code: string;
   name: string;
+  loginEmail?: string | null;
   isActive: boolean;
   credentials?: { passwordHash: string } | null;
 };
@@ -52,19 +53,26 @@ export type AuthStoreClient = {
       include?: { credentials: true };
     }): Promise<AuthPortRow | null>;
     findUnique(args: {
-      where: { code: string } | { id: string };
+      where: { code: string } | { id: string } | { loginEmail: string };
       include?: { credentials: true };
     }): Promise<AuthPortRow | null>;
     create(args: {
       data: {
         code: string;
         name: string;
+        loginEmail?: string;
         credentials: { create: { passwordHash: string } };
       };
     }): Promise<{ id: string; code: string; name: string }>;
     update(args: {
       where: { id: string };
-      data: { code?: string; name?: string; isActive?: boolean };
+      data: {
+        code?: string;
+        name?: string;
+        loginEmail?: string | null;
+        remindersEnabled?: boolean;
+        isActive?: boolean;
+      };
     }): Promise<{ id: string; code: string; name: string }>;
   };
   authPortCredential: {
@@ -189,6 +197,7 @@ export type ResetAdminPasswordWithTokenResult =
   | { ok: false; reason: "invalid_or_expired" | "weak_password" };
 
 export type VerifiedPortLogin = { authPortId: string; code: string };
+export type VerifiedPortEmailLogin = { authPortId: string; code: string; email: string };
 export type VerifiedAdminLogin = { adminId: string; email: string };
 export type VerifiedReportsLogin = { reportsUserId: string; email: string };
 export type VerifiedManagerLogin = {
@@ -217,6 +226,14 @@ function normalizeReportsEmail(email: string): string {
   return normalizeAdminEmail(email);
 }
 
+function normalizePortLoginEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function isValidPortLoginEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function normalizeManagerEmail(email: string): string {
   return normalizeAdminEmail(email);
 }
@@ -236,6 +253,21 @@ export function createAuthStore(client: AuthStoreClient) {
       if (!authPort?.credentials) return null;
       if (!(await verifyPassword(password, authPort.credentials.passwordHash))) return null;
       return { authPortId: authPort.id, code: authPort.code };
+    },
+
+    async verifyPortLoginByEmail(
+      email: string,
+      password: string
+    ): Promise<VerifiedPortEmailLogin | null> {
+      const normalized = normalizePortLoginEmail(email);
+      if (!isValidPortLoginEmail(normalized)) return null;
+      const authPort = await client.authPort.findUnique({
+        where: { loginEmail: normalized },
+        include: { credentials: true },
+      });
+      if (!authPort?.credentials || !authPort.isActive) return null;
+      if (!(await verifyPassword(password, authPort.credentials.passwordHash))) return null;
+      return { authPortId: authPort.id, code: authPort.code, email: normalized };
     },
 
     async verifyAdminLogin(email: string, password: string): Promise<VerifiedAdminLogin | null> {
@@ -409,13 +441,21 @@ export function createAuthStore(client: AuthStoreClient) {
       code: string;
       name: string;
       password: string;
+      loginEmail?: string;
     }): Promise<{ id: string; code: string; name: string }> {
       const code = normalizePortCode(input.code);
       const name = input.name.trim();
+      const loginEmail = input.loginEmail
+        ? normalizePortLoginEmail(input.loginEmail)
+        : undefined;
+      if (loginEmail && !isValidPortLoginEmail(loginEmail)) {
+        throw new Error("INVALID_LOGIN_EMAIL");
+      }
       return client.authPort.create({
         data: {
           code,
           name,
+          ...(loginEmail ? { loginEmail } : {}),
           credentials: {
             create: { passwordHash: await hashPassword(input.password) },
           },
@@ -444,13 +484,30 @@ export function createAuthStore(client: AuthStoreClient) {
 
     async syncAuthPortMeta(
       authPortId: string,
-      data: { code?: string; name?: string; isActive?: boolean }
+      data: {
+        code?: string;
+        name?: string;
+        loginEmail?: string | null;
+        remindersEnabled?: boolean;
+        isActive?: boolean;
+      }
     ): Promise<void> {
+      let loginEmail: string | null | undefined = data.loginEmail;
+      if (loginEmail !== undefined && loginEmail !== null) {
+        loginEmail = normalizePortLoginEmail(loginEmail);
+        if (!isValidPortLoginEmail(loginEmail)) {
+          throw new Error("INVALID_LOGIN_EMAIL");
+        }
+      }
       await client.authPort.update({
         where: { id: authPortId },
         data: {
           ...(data.code !== undefined ? { code: normalizePortCode(data.code) } : {}),
           ...(data.name !== undefined ? { name: data.name.trim() } : {}),
+          ...(loginEmail !== undefined ? { loginEmail } : {}),
+          ...(data.remindersEnabled !== undefined
+            ? { remindersEnabled: data.remindersEnabled }
+            : {}),
           ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
         },
       });

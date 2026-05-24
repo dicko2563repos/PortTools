@@ -1,6 +1,6 @@
-# PortTools Hub
+# PortTools Hub / Operator portal
 
-Static landing at **https://porttools.com.au** — links to PCR, PMS, PMS Reports, and PTS Calc. No login on the hub itself.
+**https://porttools.com.au** — unified port and reports login, tabbed portal to PCR, PMS, and Access register.
 
 ## Local dev
 
@@ -8,25 +8,29 @@ From the PortTools repo root:
 
 ```powershell
 npm install
+# Copy apps/hub/.env.example → apps/hub/.env (DATABASE_URL, SESSION_SECRET)
 npm run dev:hub
 ```
 
 Open http://localhost:3000
 
-## Vercel deploy (first time)
+## Vercel deploy
 
-1. **New project** in Vercel → import the **PortTools** GitHub repo.
+1. **Project** → import **PortTools** GitHub repo.
 2. **Root Directory:** `apps/hub`
-3. **Framework:** Next.js (auto-detected)
-4. **Build command:** `npm run build` (default — `vercel.json` in this folder sets this)
-5. **Install command:** `cd ../.. && npm install` (required — installs workspace packages from repo root; set in `vercel.json`)
-6. **Production domain:** `porttools.com.au` and optionally `www.porttools.com.au`
+3. **Production domain:** `porttools.com.au` and optionally `www.porttools.com.au`
 
-No database or `SESSION_SECRET` required for v1.
+### Required env
+
+| Variable | Notes |
+|----------|--------|
+| `DATABASE_URL` | Supabase — must include access to `porttools`, `public`, `movements` schemas |
+| `SESSION_SECRET` | Same as PCR/PMS/admin/access |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Login rate limiting |
+
+See `docs/operator-portal.md` for migration and existing-port setup.
 
 ## DNS (VentraIP)
-
-Add records for the apex domain (if not already present):
 
 | Type | Host | Value |
 |------|------|--------|
@@ -34,13 +38,3 @@ Add records for the apex domain (if not already present):
 | CNAME | `www` | `cname.vercel-dns.com` |
 
 Do not change existing MX records for email.
-
-## Environment variables
-
-Optional:
-
-| Variable | Purpose |
-|----------|---------|
-| `NEXT_PUBLIC_SUPPORT_EMAIL` | Override support mailto (default `kgc@precisionaviation.com.au`) |
-
-App URLs are fixed in `@porttools/ui` `DEFAULT_HUB_APPS`. Override by passing `apps` to `HubHome` in `src/app/page.tsx` if needed.

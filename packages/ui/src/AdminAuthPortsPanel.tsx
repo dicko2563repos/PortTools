@@ -19,6 +19,8 @@ export type AuthPortDto = {
   id: string;
   code: string;
   name: string;
+  loginEmail: string | null;
+  remindersEnabled: boolean;
   isActive: boolean;
 };
 
@@ -57,6 +59,7 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
       body: JSON.stringify({
         code: form.get("code"),
         name: form.get("name"),
+        loginEmail: form.get("loginEmail"),
         password: form.get("password"),
       }),
     });
@@ -83,9 +86,19 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
           )}
           {ports.map((port) => (
             <li key={port.id} className="p-3 text-sm">
-              <strong>{port.code}</strong> — {port.name}
-              {!port.isActive && (
-                <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs">Inactive</span>
+              <div>
+                <strong>{port.code}</strong> — {port.name}
+                {!port.isActive && (
+                  <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs">Inactive</span>
+                )}
+              </div>
+              <p className="mt-1 text-slate-600">
+                Login email: {port.loginEmail ?? (
+                  <span className="text-amber-800">Not set — hub login disabled</span>
+                )}
+              </p>
+              {port.remindersEnabled && (
+                <p className="text-slate-500">Compliance email reminders enabled</p>
               )}
             </li>
           ))}
@@ -115,6 +128,19 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
               className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
             />
           </label>
+          <label className="block text-sm">
+            Port login email
+            <input
+              name="loginEmail"
+              type="email"
+              required
+              placeholder="ops@port.example"
+              className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+            />
+          </label>
+          <p className="text-xs text-slate-500">
+            Used to sign in at porttools.com.au and for future compliance reminders.
+          </p>
           <label className="block text-sm">
             Shared password
             <input

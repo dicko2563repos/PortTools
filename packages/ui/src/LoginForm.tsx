@@ -6,7 +6,7 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { markTabSessionActive, TAB_SESSION_KEYS } from "./tab-session";
 
-export type LoginMode = "port" | "admin" | "reports" | "manager";
+export type LoginMode = "port" | "admin" | "reports" | "manager" | "operator";
 
 export type LoginFormProps = {
   mode: LoginMode;
@@ -14,10 +14,12 @@ export type LoginFormProps = {
   adminLoginEndpoint?: string;
   reportsLoginEndpoint?: string;
   managerLoginEndpoint?: string;
+  operatorLoginEndpoint?: string;
   portRedirect?: string;
   adminRedirect?: string;
   reportsRedirect?: string;
   managerRedirect?: string;
+  operatorRedirect?: string;
 };
 
 export function LoginForm({
@@ -26,10 +28,12 @@ export function LoginForm({
   adminLoginEndpoint = "/api/auth/admin/login",
   reportsLoginEndpoint = "/api/auth/reports/login",
   managerLoginEndpoint = "/api/auth/manager/login",
+  operatorLoginEndpoint = "/api/auth/login",
   portRedirect = "/port/record",
   adminRedirect = "/admin",
   reportsRedirect = "/reports",
   managerRedirect = "/ports",
+  operatorRedirect = "/portal",
 }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +52,9 @@ export function LoginForm({
           ? adminLoginEndpoint
           : mode === "manager"
             ? managerLoginEndpoint
-            : reportsLoginEndpoint;
+            : mode === "operator"
+              ? operatorLoginEndpoint
+              : reportsLoginEndpoint;
     const body =
       mode === "port"
         ? { code: form.get("code"), password: form.get("password") }
@@ -80,7 +86,9 @@ export function LoginForm({
           ? adminRedirect
           : mode === "manager"
             ? managerRedirect
-            : reportsRedirect
+            : mode === "operator"
+              ? operatorRedirect
+              : reportsRedirect
     );
     router.refresh();
   }
@@ -100,7 +108,13 @@ export function LoginForm({
       ) : (
         <label className="flex flex-col gap-1 text-sm">
           Email
-          <Input name="email" type="email" required autoComplete="username" />
+          <Input
+            name="email"
+            type="email"
+            required
+            autoComplete="username"
+            placeholder={mode === "operator" ? "port@example.com" : undefined}
+          />
         </label>
       )}
       <label className="flex flex-col gap-1 text-sm">

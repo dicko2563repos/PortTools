@@ -11,6 +11,7 @@ export type ProvisionPortInput = {
   code: string;
   name: string;
   password: string;
+  loginEmail?: string;
 };
 
 export type ProvisionPortResult =
@@ -93,7 +94,12 @@ export async function provisionPortEverywhere(
     await store.setPortPasswordByAuthPortId(authPortId, password);
     await store.syncAuthPortMeta(authPortId, { name });
   } else {
-    const created = await store.createPortWithCredential({ code, name, password });
+    const created = await store.createPortWithCredential({
+      code,
+      name,
+      password,
+      loginEmail: input.loginEmail,
+    });
     authPortId = created.id;
   }
 
