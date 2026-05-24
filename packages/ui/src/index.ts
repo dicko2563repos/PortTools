@@ -2,6 +2,8 @@ export { AdminAuthPortsPanel } from "./AdminAuthPortsPanel";
 export type { AdminAuthPortsPanelProps, AuthPortDto } from "./AdminAuthPortsPanel";
 export { AdminManagersPanel } from "./AdminManagersPanel";
 export type { AdminManagersPanelProps, AuthPortOption, ManagerDto } from "./AdminManagersPanel";
+export { AdminReportsUsersPanel } from "./AdminReportsUsersPanel";
+export type { AdminReportsUsersPanelProps, ReportsUserDto } from "./AdminReportsUsersPanel";
 export { AdminAdminsPanel } from "./AdminAdminsPanel";
 export type { AdminAdminsPanelProps } from "./AdminAdminsPanel";
 export { AdminForgotPasswordForm } from "./AdminForgotPasswordForm";

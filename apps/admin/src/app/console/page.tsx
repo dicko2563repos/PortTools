@@ -5,6 +5,7 @@ import {
   AdminAuthPortsPanel,
   AdminChangePasswordForm,
   AdminManagersPanel,
+  AdminReportsUsersPanel,
 } from "@porttools/ui";
 import { LogoutButton } from "@/components/LogoutButton";
 import { getSession } from "@/lib/session";
@@ -41,6 +42,7 @@ export default async function AdminConsolePage() {
       <div className="space-y-12">
         <AdminChangePasswordForm />
         <AdminAuthPortsPanel />
+        <AdminReportsUsersPanel />
         <AdminAdminsPanel currentAdminId={session.adminId} />
         <AdminManagersPanel />
       </div>
