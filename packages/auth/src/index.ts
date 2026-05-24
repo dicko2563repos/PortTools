@@ -5,10 +5,24 @@ export {
   type AuthStoreClient,
   type ChangeAdminPasswordFailureReason,
   type ChangeAdminPasswordResult,
+  type CreateAdminResult,
+  type DeleteAdminResult,
+  type ResetAdminPasswordWithTokenResult,
+  type SetAdminPasswordResult,
   type VerifiedAdminLogin,
   type VerifiedPortLogin,
   type VerifiedReportsLogin,
 } from "./store";
+export {
+  ADMIN_RESET_TOKEN_TTL_MS,
+  generateAdminResetToken,
+  hashAdminResetToken,
+} from "./admin-reset-token";
+export {
+  isResendConfigured,
+  sendAdminPasswordResetEmail,
+  sendResendEmail,
+} from "./resend-mail";
 export { clientIpFromRequest } from "./client-ip";
 export {
   checkLoginRateLimit,

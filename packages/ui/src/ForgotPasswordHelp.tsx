@@ -1,11 +1,17 @@
+import Link from "next/link";
 import type { LoginMode } from "./LoginForm";
 
 type ForgotPasswordHelpProps = {
   mode: LoginMode;
   supportEmail: string;
+  emailResetAvailable?: boolean;
 };
 
-export function ForgotPasswordHelp({ mode, supportEmail }: ForgotPasswordHelpProps) {
+export function ForgotPasswordHelp({
+  mode,
+  supportEmail,
+  emailResetAvailable = false,
+}: ForgotPasswordHelpProps) {
   const mailto = `mailto:${supportEmail}?subject=${encodeURIComponent(
     mode === "port" ? "Port login — password help" : "Admin login — password help"
   )}`;
@@ -21,13 +27,24 @@ export function ForgotPasswordHelp({ mode, supportEmail }: ForgotPasswordHelpPro
           </a>
           . An admin can reset your port&apos;s shared password in the admin panel.
         </>
+      ) : emailResetAvailable ? (
+        <>
+          <Link href="/login/admin/forgot" className="text-slate-900 underline hover:no-underline">
+            Reset by email
+          </Link>
+          {" or contact "}
+          <a href={mailto} className="text-slate-900 underline hover:no-underline">
+            {supportEmail}
+          </a>
+          .
+        </>
       ) : (
         <>
           Contact{" "}
           <a href={mailto} className="text-slate-900 underline hover:no-underline">
             {supportEmail}
           </a>
-          . A system administrator can reset admin access for you.
+          . Another admin can reset your password in the admin panel.
         </>
       )}
     </p>

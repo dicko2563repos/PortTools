@@ -1,3 +1,9 @@
+export { AdminAdminsPanel } from "./AdminAdminsPanel";
+export type { AdminAdminsPanelProps } from "./AdminAdminsPanel";
+export { AdminForgotPasswordForm } from "./AdminForgotPasswordForm";
+export type { AdminForgotPasswordFormProps } from "./AdminForgotPasswordForm";
+export { AdminResetPasswordForm } from "./AdminResetPasswordForm";
+export type { AdminResetPasswordFormProps } from "./AdminResetPasswordForm";
 export { AdminChangePasswordForm } from "./AdminChangePasswordForm";
 export type { AdminChangePasswordFormProps } from "./AdminChangePasswordForm";
 export { PlatformHomeLink } from "./PlatformHomeLink";

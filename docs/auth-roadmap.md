@@ -28,9 +28,19 @@ Forgot password UX: link to **kgc@precisionaviation.com.au** (Option A — no em
 
 Logged-in admin can change own password (current + new) on PCR and PMS admin pages. Updates `porttools.admins` via `@porttools/auth` `changeAdminPassword`. Still no email reset.
 
-## Phase C — Email reset *(optional)*
+## Phase C — Admin email reset *(done)*
 
-SMTP or provider for admin accounts only; port users still admin-reset.
+Self-service admin forgot-password when **Resend** is configured (`RESEND_API_KEY`, `EMAIL_FROM`):
+
+- `/login/admin/forgot` — request reset link (1 hour, rate limited)
+- `/login/admin/reset?token=…` — set new password
+- Works on PCR and PMS; updates shared `porttools.admins`
+
+Without Resend, login page falls back to support mailto and another admin resetting the password in **Admin accounts**.
+
+## Phase D — Admin account management *(done)*
+
+Logged-in admin can list, add, reset password, and remove admin accounts (cannot remove self or the last admin). Shared `porttools.admins` across PCR and PMS.
 
 ## Hub landing *(v1 — done)*
 

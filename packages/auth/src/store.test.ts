@@ -19,7 +19,16 @@ function mockClient(overrides?: Partial<AuthStoreClient>): AuthStoreClient {
     },
     authAdmin: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    adminPasswordResetToken: {
+      deleteMany: vi.fn(),
+      create: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
     reportsUser: {
@@ -50,7 +59,14 @@ describe("changeAdminPassword", () => {
       passwordHash: await hashPassword(currentPassword),
     });
     const client = mockClient({
-      authAdmin: { findUnique, create: vi.fn(), update: vi.fn() },
+      authAdmin: {
+        findUnique,
+        create: vi.fn(),
+        update: vi.fn(),
+        findMany: vi.fn(),
+        count: vi.fn(),
+        delete: vi.fn(),
+      },
     });
     const store = createAuthStore(client);
 
@@ -73,7 +89,13 @@ describe("changeAdminPassword", () => {
     });
     const update = vi.fn().mockResolvedValue({});
     const client = mockClient({
-      authAdmin: { findUnique, create: vi.fn(), update },
+      authAdmin: { findUnique, create: vi.fn(), update, findMany: vi.fn(), count: vi.fn(), delete: vi.fn() },
+      adminPasswordResetToken: {
+        deleteMany: vi.fn(),
+        create: vi.fn(),
+        findFirst: vi.fn(),
+        update: vi.fn(),
+      },
     });
     const store = createAuthStore(client);
 
@@ -128,5 +150,32 @@ describe("verifyReportsLogin", () => {
       reportsUserId: "reports-1",
       email: "reports@example.com",
     });
+  });
+});
+
+describe("deleteAdmin", () => {
+  it("blocks deleting the last admin", async () => {
+    const findUnique = vi.fn().mockResolvedValue({
+      id: ADMIN_ID,
+      email: "admin@example.com",
+      passwordHash: "hash",
+    });
+    const count = vi.fn().mockResolvedValue(1);
+    const client = mockClient({
+      authAdmin: {
+        findUnique,
+        count,
+        create: vi.fn(),
+        update: vi.fn(),
+        findMany: vi.fn(),
+        delete: vi.fn(),
+      },
+    });
+    const store = createAuthStore(client);
+
+    const result = await store.deleteAdmin(ADMIN_ID);
+
+    expect(result).toEqual({ ok: false, reason: "last_admin" });
+    expect(client.authAdmin.delete).not.toHaveBeenCalled();
   });
 });

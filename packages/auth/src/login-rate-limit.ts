@@ -1,7 +1,7 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-export type LoginRateLimitScope = "port" | "admin" | "reports";
+export type LoginRateLimitScope = "port" | "admin" | "reports" | "admin_forgot" | "admin_reset";
 
 export type LoginRateLimitResult =
   | { limited: false }
