@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { cn } from "./cn";
+
 export type PlatformHomeLinkProps = {
   href?: string;
   label?: string;
@@ -9,12 +14,20 @@ export function PlatformHomeLink({
   label = "← PortTools home",
   className,
 }: PlatformHomeLinkProps) {
+  const [pending, setPending] = useState(false);
+
   return (
     <a
       href={href}
-      className={className ?? "text-sm text-slate-500 hover:text-slate-800"}
+      onClick={() => setPending(true)}
+      aria-busy={pending}
+      className={cn(
+        "text-sm text-slate-500 transition-colors hover:text-slate-800 active:text-slate-900",
+        pending && "cursor-wait text-slate-700 opacity-70",
+        className
+      )}
     >
-      {label}
+      {pending ? `${label}…` : label}
     </a>
   );
 }

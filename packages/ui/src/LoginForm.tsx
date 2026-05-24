@@ -53,8 +53,8 @@ export function LoginForm({
       body: JSON.stringify(body),
     });
 
-    setLoading(false);
     if (!res.ok) {
+      setLoading(false);
       const data = (await res.json()) as { error?: string };
       setError(data.error ?? "Login failed");
       return;
