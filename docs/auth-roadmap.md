@@ -24,9 +24,9 @@ Port passwords are **shared per port** across PCR and Movements; reset via admin
 
 Forgot password UX: link to **kgc@precisionaviation.com.au** (Option A — no email self-service yet).
 
-## Phase B — Admin self-service *(optional, per app)*
+## Phase B — Admin self-service *(done)*
 
-Logged-in admin can change own password (current + new). Still no email reset.
+Logged-in admin can change own password (current + new) on PCR and PMS admin pages. Updates `porttools.admins` via `@porttools/auth` `changeAdminPassword`. Still no email reset.
 
 ## Phase C — Email reset *(optional)*
 

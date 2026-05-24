@@ -3,6 +3,8 @@ export {
   createAuthStore,
   type AuthStore,
   type AuthStoreClient,
+  type ChangeAdminPasswordFailureReason,
+  type ChangeAdminPasswordResult,
   type VerifiedAdminLogin,
   type VerifiedPortLogin,
 } from "./store";

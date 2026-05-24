@@ -52,12 +52,24 @@ export type AuthStoreClient = {
     }): Promise<unknown>;
   };
   authAdmin: {
-    findUnique(args: { where: { email: string } }): Promise<AuthAdminRow | null>;
+    findUnique(args: {
+      where: { email: string } | { id: string };
+    }): Promise<AuthAdminRow | null>;
     create(args: {
       data: { email: string; passwordHash: string };
     }): Promise<{ id: string; email: string }>;
+    update(args: {
+      where: { id: string };
+      data: { passwordHash: string };
+    }): Promise<unknown>;
   };
 };
+
+export type ChangeAdminPasswordFailureReason = "invalid_current" | "weak_password";
+
+export type ChangeAdminPasswordResult =
+  | { ok: true }
+  | { ok: false; reason: ChangeAdminPasswordFailureReason };
 
 export type VerifiedPortLogin = { authPortId: string; code: string };
 export type VerifiedAdminLogin = { adminId: string; email: string };
@@ -159,6 +171,32 @@ export function createAuthStore(client: AuthStoreClient) {
           passwordHash: await hashPassword(password),
         },
       });
+    },
+
+    async changeAdminPassword(
+      adminId: string,
+      currentPassword: string,
+      newPassword: string
+    ): Promise<ChangeAdminPasswordResult> {
+      if (newPassword.length < 8 || newPassword.length > 128) {
+        return { ok: false, reason: "weak_password" };
+      }
+
+      const admin = await client.authAdmin.findUnique({ where: { id: adminId } });
+      if (!admin) {
+        return { ok: false, reason: "invalid_current" };
+      }
+
+      if (!(await verifyPassword(currentPassword, admin.passwordHash))) {
+        return { ok: false, reason: "invalid_current" };
+      }
+
+      await client.authAdmin.update({
+        where: { id: adminId },
+        data: { passwordHash: await hashPassword(newPassword) },
+      });
+
+      return { ok: true };
     },
   };
 }

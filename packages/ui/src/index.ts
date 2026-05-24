@@ -1,3 +1,5 @@
+export { AdminChangePasswordForm } from "./AdminChangePasswordForm";
+export type { AdminChangePasswordFormProps } from "./AdminChangePasswordForm";
 export { AppHomeLinks } from "./AppHomeLinks";
 export { BrandTitle } from "./BrandTitle";
 export { Button } from "./Button";
