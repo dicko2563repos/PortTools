@@ -22,9 +22,12 @@ Shared docs for web apps at **porttools.com.au** (subdomains per app).
 
 ## Cursor workflow
 
-1. Open **`PortTools.code-workspace`** (includes Platform + Compliance-Web).
-2. Each app repo has `.cursor/rules/` — platform rule points here.
-3. New app: copy design-language patterns from Compliance-Web; register in `apps-registry.md`.
+1. Open **`C:\Projects\PortTools-Platform.code-workspace`** (Compliance-Web + Movements-Web + this submodule).
+2. **Edit PortTools here** (`Compliance-Web/PortTools` when using that workspace). See **`Compliance-Web/docs/porttools-git-workflow.md`** for push order.
+3. Each app repo has `.cursor/rules/` — platform rule points here.
+4. New app: copy design-language patterns from Compliance-Web; register in `apps-registry.md`.
+
+> **Do not** maintain a separate clone at `C:\Projects\PortTools` — it duplicates this repo and breaks GitHub Desktop pushes.
 
 ## Hosting pattern (current)
 
