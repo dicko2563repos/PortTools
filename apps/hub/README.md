@@ -18,8 +18,8 @@ Open http://localhost:3000
 1. **New project** in Vercel → import the **PortTools** GitHub repo.
 2. **Root Directory:** `apps/hub`
 3. **Framework:** Next.js (auto-detected)
-4. **Build command:** `npm run build` (default)
-5. **Install command:** `npm install` (runs from repo root when Root Directory is set — Vercel installs from monorepo root)
+4. **Build command:** `npm run build` (default — `vercel.json` in this folder sets this)
+5. **Install command:** `cd ../.. && npm install` (required — installs workspace packages from repo root; set in `vercel.json`)
 6. **Production domain:** `porttools.com.au` and optionally `www.porttools.com.au`
 
 No database or `SESSION_SECRET` required for v1.

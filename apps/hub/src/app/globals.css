@@ -2,5 +2,5 @@
 @import "@porttools/tailwind-config/theme.css";
 @import "@porttools/ui/styles.css";
 
-@source "../../packages/ui/src/**/*.{ts,tsx}";
-@source "./**/*.{ts,tsx}";
+@source "../../**/*.{ts,tsx}";
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
