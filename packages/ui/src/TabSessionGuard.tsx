@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { hasTabSession } from "./tab-session";
 
 export type TabSessionGuardProps = {
@@ -25,7 +25,7 @@ export function TabSessionGuard({
   const router = useRouter();
   const [allowed, setAllowed] = useState(true);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isLoginRoute(pathname, loginPath)) {
       setAllowed(true);
       return;

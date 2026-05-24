@@ -199,7 +199,7 @@ export function AccessRegisterClient({ port }: { port: PortInfo }) {
   const load = useCallback(async () => {
     const res = await fetch(base);
     if (!res.ok) {
-      setError("Failed to load access register");
+      setError(await readApiError(res, "Failed to load access register"));
       return;
     }
     const data = (await res.json()) as {
