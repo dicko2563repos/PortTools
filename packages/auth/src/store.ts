@@ -332,6 +332,7 @@ export function createAuthStore(client: AuthStoreClient) {
       email: string,
       password: string
     ): Promise<VerifiedManagerLogin | null> {
+      if (!client.manager) return null;
       const normalized = normalizeManagerEmail(email);
       const manager = await client.manager.findUnique({
         where: { email: normalized },
@@ -348,6 +349,7 @@ export function createAuthStore(client: AuthStoreClient) {
       portLoginEmail: string,
       password: string
     ): Promise<VerifiedManagerLogin | null> {
+      if (!client.manager) return null;
       const normalized = normalizePortLoginEmail(portLoginEmail);
       if (!isValidPortLoginEmail(normalized)) return null;
 
