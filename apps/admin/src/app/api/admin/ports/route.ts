@@ -17,7 +17,6 @@ export async function GET() {
     }
 
     const ports = await prisma.authPort.findMany({
-      where: { isActive: true },
       orderBy: { code: "asc" },
       select: {
         id: true,

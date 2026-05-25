@@ -32,7 +32,7 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [pinDrafts, setPinDrafts] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/ports");
@@ -76,30 +76,37 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
     await load();
   }
 
-  async function onSetAccessPin(portId: string) {
-    const accessPin = pinDrafts[portId]?.trim() ?? "";
-    if (!/^\d{4,8}$/.test(accessPin)) {
-      setError("Access PIN must be 4–8 digits");
-      return;
-    }
-
+  async function onEdit(e: React.FormEvent<HTMLFormElement>, portId: string) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
     setError(null);
     setMessage(null);
     setBusy(true);
+
+    const password = String(form.get("password") ?? "").trim();
+    const accessPin = String(form.get("accessPin") ?? "").trim();
+
     const res = await fetch(`/api/admin/ports/${portId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accessPin }),
+      body: JSON.stringify({
+        name: form.get("name"),
+        loginEmail: form.get("loginEmail"),
+        remindersEnabled: form.get("remindersEnabled") === "on",
+        isActive: form.get("isActive") === "on",
+        ...(password.length > 0 ? { password } : {}),
+        ...(accessPin.length > 0 ? { accessPin } : {}),
+      }),
     });
     setBusy(false);
 
     if (!res.ok) {
-      setError(await readApiError(res, "Failed to update access PIN"));
+      setError(await readApiError(res, "Update failed"));
       return;
     }
 
-    setMessage("Access register PIN updated");
-    setPinDrafts((prev) => ({ ...prev, [portId]: "" }));
+    setMessage("Port updated");
+    setEditingId(null);
     await load();
   }
 
@@ -116,54 +123,126 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
           )}
           {ports.map((port) => (
             <li key={port.id} className="space-y-3 p-3 text-sm">
-              <div>
-                <strong>{port.code}</strong> — {port.name}
-                {!port.isActive && (
-                  <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs">Inactive</span>
-                )}
-              </div>
-              <p className="text-slate-600">
-                Login email: {port.loginEmail ?? (
-                  <span className="text-amber-800">Not set — hub login disabled</span>
-                )}
-              </p>
-              <p className="text-slate-600">
-                Access register PIN:{" "}
-                {port.hasAccessPin ? (
-                  <span className="text-green-800">Configured</span>
-                ) : (
-                  <span className="text-amber-800">Not set — hub operators cannot open register</span>
-                )}
-              </p>
-              {port.remindersEnabled && (
-                <p className="text-slate-500">Compliance email reminders enabled</p>
+              {editingId === port.id ? (
+                <form onSubmit={(e) => void onEdit(e, port.id)} className="space-y-3">
+                  <p className="font-medium">
+                    {port.code}
+                    {!port.isActive && (
+                      <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs">
+                        Inactive
+                      </span>
+                    )}
+                  </p>
+                  <label className="block text-sm">
+                    Display name
+                    <input
+                      name="name"
+                      required
+                      defaultValue={port.name}
+                      className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    Port login email
+                    <input
+                      name="loginEmail"
+                      type="email"
+                      required
+                      defaultValue={port.loginEmail ?? ""}
+                      className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      name="remindersEnabled"
+                      type="checkbox"
+                      defaultChecked={port.remindersEnabled}
+                    />
+                    Compliance email reminders enabled
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input name="isActive" type="checkbox" defaultChecked={port.isActive} />
+                    Port active
+                  </label>
+                  <label className="block text-sm">
+                    New shared password (optional)
+                    <input
+                      name="password"
+                      type="password"
+                      minLength={8}
+                      className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    {port.hasAccessPin ? "New access register PIN (optional)" : "Access register PIN"}
+                    <input
+                      name="accessPin"
+                      type="password"
+                      inputMode="numeric"
+                      pattern="\d{4,8}"
+                      minLength={4}
+                      maxLength={8}
+                      className="mt-1 w-full rounded border border-slate-300 px-2 py-1 tracking-widest"
+                    />
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    PIN is 4–8 digits. Leave blank to keep the current PIN.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={busy} className="px-3 py-1 text-sm">
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="px-3 py-1 text-sm"
+                      onClick={() => setEditingId(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <strong>{port.code}</strong> — {port.name}
+                      {!port.isActive && (
+                        <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="px-3 py-1 text-sm"
+                      onClick={() => setEditingId(port.id)}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                  <p className="text-slate-600">
+                    Login email:{" "}
+                    {port.loginEmail ?? (
+                      <span className="text-amber-800">Not set — hub login disabled</span>
+                    )}
+                  </p>
+                  <p className="text-slate-600">
+                    Access register PIN:{" "}
+                    {port.hasAccessPin ? (
+                      <span className="text-green-800">Configured</span>
+                    ) : (
+                      <span className="text-amber-800">
+                        Not set — hub operators cannot open register
+                      </span>
+                    )}
+                  </p>
+                  {port.remindersEnabled && (
+                    <p className="text-slate-500">Compliance email reminders enabled</p>
+                  )}
+                </>
               )}
-              <div className="flex flex-wrap items-end gap-2 pt-1">
-                <label className="block text-xs text-slate-600">
-                  {port.hasAccessPin ? "Set new PIN" : "Set access PIN"}
-                  <input
-                    type="password"
-                    inputMode="numeric"
-                    pattern="\d{4,8}"
-                    minLength={4}
-                    maxLength={8}
-                    value={pinDrafts[port.id] ?? ""}
-                    onChange={(e) =>
-                      setPinDrafts((prev) => ({ ...prev, [port.id]: e.target.value }))
-                    }
-                    className="mt-1 block w-32 rounded border border-slate-300 px-2 py-1 tracking-widest"
-                  />
-                </label>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={busy}
-                  className="text-sm"
-                  onClick={() => void onSetAccessPin(port.id)}
-                >
-                  Save PIN
-                </Button>
-              </div>
             </li>
           ))}
         </ul>
