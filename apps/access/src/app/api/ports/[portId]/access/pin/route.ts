@@ -9,7 +9,8 @@ type RouteContext = { params: Promise<{ portId: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
   return withApiErrorHandling("POST /api/ports/[portId]/access/pin", async () => {
-    const session = await getSession();    if (!session || session.type !== "port") {
+    const session = await getSession();
+    if (!session || session.type !== "port") {
       return NextResponse.json({ error: "Port operator login required" }, { status: 401 });
     }
 

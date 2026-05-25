@@ -11,6 +11,7 @@ export function LogoutButton() {
   async function onLogout() {
     setBusy(true);
     clearTabSession(TAB_SESSION_KEYS.access);
+    clearTabSession(TAB_SESSION_KEYS.accessPin);
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();

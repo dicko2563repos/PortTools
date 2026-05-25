@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@porttools/ui";
+import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
 import {
   accessRegisterUrl,
   pcrRecordUrl,
@@ -31,6 +31,7 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
 
   async function onLogout() {
     setBusy(true);
+    clearTabSession(TAB_SESSION_KEYS.hub);
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
     router.refresh();

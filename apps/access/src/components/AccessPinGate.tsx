@@ -1,8 +1,9 @@
 "use client";
 
+import { Button, Input, markTabSessionActive, TAB_SESSION_KEYS } from "@porttools/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Input } from "@porttools/ui";
+import { markAccessPinTabActive } from "@/components/AccessPinTabGuard";
 
 type PortInfo = { id: string; code: string; name: string };
 
@@ -41,6 +42,8 @@ export function AccessPinGate({
       return;
     }
 
+    markAccessPinTabActive();
+    markTabSessionActive(TAB_SESSION_KEYS.accessPin);
     router.refresh();
   }
 

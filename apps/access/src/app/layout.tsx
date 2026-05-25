@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccessPinTabGuard } from "@/components/AccessPinTabGuard";
 import { AccessTabSessionGate } from "@/components/AccessTabSessionGate";
 import "./globals.css";
 
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
-        <AccessTabSessionGate>{children}</AccessTabSessionGate>
+        <AccessTabSessionGate>
+          <AccessPinTabGuard>{children}</AccessPinTabGuard>
+        </AccessTabSessionGate>
       </body>
     </html>
   );

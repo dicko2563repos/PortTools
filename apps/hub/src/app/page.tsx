@@ -1,16 +1,11 @@
 import { BrandTitle, LoginForm } from "@porttools/ui";
-import { redirect } from "next/navigation";
+import { HubHomeRedirect } from "@/components/HubHomeRedirect";
 import { SUPPORT_EMAIL } from "@/lib/app-urls";
-import { getSession } from "@/lib/session";
 
-export default async function HomePage() {
-  const session = await getSession();
-  if (session) {
-    redirect("/portal");
-  }
-
+export default function HomePage() {
   return (
     <main className="relative mx-auto max-w-md p-8">
+      <HubHomeRedirect />
       <BrandTitle productName="PortTools" className="mt-4" />
       <p className="mt-4 text-center text-sm text-slate-600">
         Sign in with your port or reports email and password.

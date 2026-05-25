@@ -26,21 +26,25 @@ export function TabSessionGuard({
 }: TabSessionGuardProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [allowed, setAllowed] = useState(true);
+  const [checked, setChecked] = useState(false);
+  const [allowed, setAllowed] = useState(false);
 
   useLayoutEffect(() => {
     if (!enabled) {
       setAllowed(true);
+      setChecked(true);
       return;
     }
 
     if (isLoginRoute(pathname, loginPath)) {
       setAllowed(true);
+      setChecked(true);
       return;
     }
 
     if (!hasTabSession(storageKey)) {
       setAllowed(false);
+      setChecked(true);
       void fetch(logoutEndpoint, { method: "POST" }).finally(() => {
         router.replace(loginPath);
         router.refresh();
@@ -49,9 +53,10 @@ export function TabSessionGuard({
     }
 
     setAllowed(true);
+    setChecked(true);
   }, [pathname, storageKey, loginPath, logoutEndpoint, router, enabled]);
 
-  if (!allowed) {
+  if (!checked || !allowed) {
     return null;
   }
 
