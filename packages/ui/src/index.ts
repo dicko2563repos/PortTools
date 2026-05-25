@@ -23,8 +23,10 @@ export { HubHome, DEFAULT_HUB_APPS } from "./HubHome";
 export type { HubAppLink, HubHomeProps } from "./HubHome";
 export { HomeLink } from "./HomeLink";
 export { Input } from "./Input";
-export { LoginForm } from "./LoginForm";
+export { ManagerReminderToggle } from "./ManagerReminderToggle";
+export type { ManagerReminderToggleProps } from "./ManagerReminderToggle";
 export type { LoginFormProps, LoginMode, LoginEntryApp } from "./LoginForm";
+export { LoginForm } from "./LoginForm";
 export { TabSessionGuard } from "./TabSessionGuard";
 export type { TabSessionGuardProps } from "./TabSessionGuard";
 export {

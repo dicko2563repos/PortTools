@@ -20,7 +20,6 @@ export type AuthPortDto = {
   code: string;
   name: string;
   loginEmail: string | null;
-  remindersEnabled: boolean;
   isActive: boolean;
   hasAccessPin: boolean;
 };
@@ -92,7 +91,6 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
       body: JSON.stringify({
         name: form.get("name"),
         loginEmail: form.get("loginEmail"),
-        remindersEnabled: form.get("remindersEnabled") === "on",
         isActive: form.get("isActive") === "on",
         ...(password.length > 0 ? { password } : {}),
         ...(accessPin.length > 0 ? { accessPin } : {}),
@@ -151,14 +149,6 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
                       defaultValue={port.loginEmail ?? ""}
                       className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
                     />
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      name="remindersEnabled"
-                      type="checkbox"
-                      defaultChecked={port.remindersEnabled}
-                    />
-                    Compliance email reminders enabled
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input name="isActive" type="checkbox" defaultChecked={port.isActive} />
@@ -238,9 +228,6 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
                       </span>
                     )}
                   </p>
-                  {port.remindersEnabled && (
-                    <p className="text-slate-500">Compliance email reminders enabled</p>
-                  )}
                 </>
               )}
             </li>

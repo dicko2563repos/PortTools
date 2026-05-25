@@ -13,7 +13,8 @@ model AuthPort {
   code             String   @unique
   name             String
   loginEmail       String?  @unique @map("login_email")
-  remindersEnabled Boolean  @default(false) @map("reminders_enabled")
+  complianceReminderEmailsEnabled Boolean @default(false) @map("compliance_reminder_emails_enabled")
+  asicReminderEmailsEnabled       Boolean @default(false) @map("asic_reminder_emails_enabled")
   isActive         Boolean  @default(true) @map("is_active")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 

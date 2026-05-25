@@ -71,7 +71,8 @@ export type AuthStoreClient = {
         code?: string;
         name?: string;
         loginEmail?: string | null;
-        remindersEnabled?: boolean;
+        complianceReminderEmailsEnabled?: boolean;
+        asicReminderEmailsEnabled?: boolean;
         isActive?: boolean;
       };
     }): Promise<{ id: string; code: string; name: string }>;
@@ -581,7 +582,6 @@ export function createAuthStore(client: AuthStoreClient) {
         code?: string;
         name?: string;
         loginEmail?: string | null;
-        remindersEnabled?: boolean;
         isActive?: boolean;
       }
     ): Promise<void> {
@@ -598,12 +598,52 @@ export function createAuthStore(client: AuthStoreClient) {
           ...(data.code !== undefined ? { code: normalizePortCode(data.code) } : {}),
           ...(data.name !== undefined ? { name: data.name.trim() } : {}),
           ...(loginEmail !== undefined ? { loginEmail } : {}),
-          ...(data.remindersEnabled !== undefined
-            ? { remindersEnabled: data.remindersEnabled }
-            : {}),
           ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
         },
       });
+    },
+
+    async setPortReminderSettings(
+      authPortId: string,
+      data: {
+        complianceReminderEmailsEnabled?: boolean;
+        asicReminderEmailsEnabled?: boolean;
+      }
+    ): Promise<boolean> {
+      const existing = await client.authPort.findUnique({ where: { id: authPortId } });
+      if (!existing) return false;
+      await client.authPort.update({
+        where: { id: authPortId },
+        data: {
+          ...(data.complianceReminderEmailsEnabled !== undefined
+            ? { complianceReminderEmailsEnabled: data.complianceReminderEmailsEnabled }
+            : {}),
+          ...(data.asicReminderEmailsEnabled !== undefined
+            ? { asicReminderEmailsEnabled: data.asicReminderEmailsEnabled }
+            : {}),
+        },
+      });
+      return true;
+    },
+
+    async getPortReminderSettings(authPortId: string): Promise<{
+      complianceReminderEmailsEnabled: boolean;
+      asicReminderEmailsEnabled: boolean;
+      loginEmail: string | null;
+    } | null> {
+      const row = await client.authPort.findUnique({
+        where: { id: authPortId },
+      });
+      if (!row) return null;
+      return {
+        complianceReminderEmailsEnabled: Boolean(
+          (row as { complianceReminderEmailsEnabled?: boolean }).complianceReminderEmailsEnabled
+        ),
+        asicReminderEmailsEnabled: Boolean(
+          (row as { asicReminderEmailsEnabled?: boolean }).asicReminderEmailsEnabled
+        ),
+        loginEmail: row.loginEmail ?? null,
+      };
     },
 
     async findAuthPortByCode(code: string): Promise<AuthPortRow | null> {

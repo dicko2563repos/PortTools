@@ -21,7 +21,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     const body = (await parseJsonBody(request)) as {
       name?: string;
       loginEmail?: string | null;
-      remindersEnabled?: boolean;
       isActive?: boolean;
       accessPin?: string;
       password?: string;
@@ -65,7 +64,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     const hasMetaChange =
       name !== undefined ||
       body.loginEmail !== undefined ||
-      body.remindersEnabled !== undefined ||
       body.isActive !== undefined ||
       password.length >= 8 ||
       (body.accessPin !== undefined && body.accessPin.trim().length > 0);
@@ -92,16 +90,12 @@ export async function PATCH(request: Request, context: RouteContext) {
         const syncMeta =
           name !== undefined ||
           body.loginEmail !== undefined ||
-          body.remindersEnabled !== undefined ||
           body.isActive !== undefined;
 
         if (syncMeta) {
           await store.syncAuthPortMeta(portId, {
             ...(name !== undefined ? { name } : {}),
             ...(body.loginEmail !== undefined ? { loginEmail: body.loginEmail } : {}),
-            ...(body.remindersEnabled !== undefined
-              ? { remindersEnabled: body.remindersEnabled }
-              : {}),
             ...(body.isActive !== undefined ? { isActive: body.isActive } : {}),
           });
         }
@@ -133,7 +127,6 @@ export async function PATCH(request: Request, context: RouteContext) {
         code: true,
         name: true,
         loginEmail: true,
-        remindersEnabled: true,
         isActive: true,
         accessPin: { select: { portId: true } },
       },

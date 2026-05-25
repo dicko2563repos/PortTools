@@ -11,7 +11,8 @@ Platform admin stays at **admin.porttools.com.au**.
 ## Phase 1 (shipped)
 
 - `porttools.ports.login_email` — unique port operator email
-- `porttools.ports.reminders_enabled` — flag for future compliance reminder cron
+- `porttools.ports.compliance_reminder_emails_enabled` — manager opt-in for daily PCR overdue emails
+- `porttools.ports.asic_reminder_emails_enabled` — manager opt-in for ASIC expiry emails (7/30/60 days)
 - Hub login at `/` → `/portal` with tabs (deep links to existing apps)
 - Shared session cookie `porttools_session` on `.porttools.com.au` (browser session cookie; JWT backstop 24h)
 - Admin console: login email required when creating a port
@@ -32,7 +33,7 @@ Platform admin stays at **admin.porttools.com.au**.
   - Managers: **port login email** + manager password (same permissions as staff; multi-port switcher in hub portal)
   - Reports: reports email + password → PMS reports (or hub reports tab)
   - Sets shared `porttools_session` on `.porttools.com.au` (Option A SSO)
-- Compliance reminder cron emails when `reminders_enabled` (planned)
+- **Email reminders (May 2026):** Managers toggle per port in PCR (compliance) and Access register (ASIC). Cron emails go to `login_email` only. Set `RESEND_API_KEY`, `EMAIL_FROM`, and `CRON_SECRET` on PCR and Access Vercel projects.
 
 ## Database migration
 
@@ -50,6 +51,8 @@ UPDATE porttools.ports SET login_email = 'ops@example.com' WHERE code = 'KGC';
 ```
 
 Migration: `20260525180000_port_access_pin` (run `npm run db:migrate:deploy` from Compliance-Web or Movements-Web)
+
+Migration: `20260526120000_manager_reminder_emails` — replaces `reminders_enabled` with manager-controlled flags
 
 ## Hub Vercel env
 
