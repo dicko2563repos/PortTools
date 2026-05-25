@@ -89,8 +89,8 @@ export async function POST(request: Request) {
           id: true,
           code: true,
           name: true,
-        loginEmail: true,
-        isActive: true,
+          loginEmail: true,
+          isActive: true,
           accessPin: { select: { portId: true } },
         },
       });

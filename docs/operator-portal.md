@@ -23,7 +23,7 @@ Platform admin stays at **admin.porttools.com.au**.
 - PCR, PMS, and Access read `porttools_session` when the app cookie is absent — portal tabs open signed in
 - Hub portal embeds each app in a tab (`iframe`); **Open in new tab** link in header
 - Hub tab-session gate — closing the browser tab/window requires login again (same pattern as admin/access)
-- Access: port-operator sessions skip the access tab gate; manager login unchanged
+- Access: port-operator sessions skip the access tab gate; hub managers with `porttools_session` skip the tab gate in the iframe
 
 ## Phase 3 (shipped)
 
@@ -37,9 +37,17 @@ Platform admin stays at **admin.porttools.com.au**.
 
 ## Database migration
 
+**Canonical:** run shared `porttools` migrations from **Compliance-Web** (not Movements-Web):
+
 ```bash
-# From Compliance-Web or Movements-Web
+# From Compliance-Web repo root (production/staging)
 npm run db:migrate:deploy
+```
+
+Local development (creates new migrations):
+
+```bash
+npm run db:migrate
 ```
 
 Migration: `20260524220000_port_login_email`

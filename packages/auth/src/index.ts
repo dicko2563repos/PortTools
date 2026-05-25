@@ -93,6 +93,11 @@ export {
   buildComplianceReminderEmail,
   type AsicReminderLine,
 } from "./reminders";
+export {
+  daysUntilAsicExpiry,
+  formatAsicExpiryMonth,
+  lastDayOfAsicExpiryMonth,
+} from "./asic-expiry";
 export { isAuthorizedCronRequest } from "./cron-auth";
 export function normalizePortLoginEmail(email: string): string {
   return email.trim().toLowerCase();

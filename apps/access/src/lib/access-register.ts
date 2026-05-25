@@ -3,11 +3,13 @@ import type { FobDeviceEventType, FobHolderType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSession, type SessionPayload } from "@/lib/session";
 import { hasAccessPinUnlock } from "@/lib/access-pin-unlock";
+import { daysUntilAsicExpiry as daysUntilAsicExpiryCanonical } from "@porttools/auth";
 import {
   daysUntilAsicExpiry,
   formatAsicExpiryMonth,
   isAsicExpired,
   isAsicExpiringSoon,
+  parseAsicExpiryMonth,
 } from "@/lib/asic-expiry";
 
 export const ASIC_EXPIRY_SOON_DAYS = 90;
@@ -143,7 +145,7 @@ export function formatDateOnly(date: Date): string {
 }
 
 export function daysUntilExpiry(expiryDate: Date): number {
-  return daysUntilAsicExpiry(expiryDate);
+  return daysUntilAsicExpiryCanonical(expiryDate);
 }
 
 export function isExpiringSoon(expiryDate: Date): boolean {

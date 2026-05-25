@@ -69,20 +69,20 @@ Deploy: `PortTools/apps/admin`, `PortTools/apps/access` as separate Vercel proje
 
 Port create (Admin console, PCR admin, or PMS admin) uses `@porttools/auth` **`provisionPortEverywhere`** — writes `porttools`, `public.ports`, and `movements.ports` in one transaction (matched by **code**).
 
-## Unified port login — Option 3 *(in progress)*
+## Unified port login — Option 3 *(shipped May 2026)*
 
 **Phase 1 (hub):** `porttools.com.au` login with port **login email** + password; tabbed portal; shared cookie `porttools_session` on `.porttools.com.au`. See `docs/operator-portal.md`.
 
-**Phase 2:** PCR/PMS auto-login from shared cookie; embed UIs; Access PIN gate; reminder cron.
+**Phase 2 (shipped):** PCR/PMS auto-login from shared cookie; hub iframe embeds; Access PIN for port staff; manager ASIC/compliance email reminders (manager opt-in). Hub manager iframe skips Access tab gate when `porttools_session` is present.
 
-Original Option 3 steps:
+**Phase 3 (future):** Retire legacy per-app login pages where safe; optional Outlook calendar integration for ASIC expiry.
+
+Original Option 3 steps (completed):
 
 1. Hub login sets cookie on `.porttools.com.au`
 2. Same `SESSION_SECRET` across Vercel projects
-3. Compatible JWT payload; Movements `unlockedPeriodIds` moved to DB or app cookie
-4. Each app validates shared cookie / retires per-app login pages
-
-**Do not implement SSO until hub exists and Option 2 is stable in production.**
+3. Compatible JWT payload; Movements `unlockedPeriodIds` in app cookie
+4. Each app validates shared cookie alongside app session
 
 ## Agent note
 

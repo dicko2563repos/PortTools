@@ -269,7 +269,7 @@ export function AdminAuthPortsPanel(_props: AdminAuthPortsPanelProps) {
             />
           </label>
           <p className="text-xs text-slate-500">
-            Used to sign in at porttools.com.au and for future compliance reminders.
+            Used to sign in at porttools.com.au and for compliance / ASIC reminder emails when managers opt in.
           </p>
           <label className="block text-sm">
             Access register PIN

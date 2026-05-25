@@ -57,34 +57,20 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const body = (await parseJsonBody(request)) as {
-      complianceReminderEmailsEnabled?: boolean;
       asicReminderEmailsEnabled?: boolean;
     };
 
-    const patch: {
-      complianceReminderEmailsEnabled?: boolean;
-      asicReminderEmailsEnabled?: boolean;
-    } = {};
-
-    if (body.complianceReminderEmailsEnabled !== undefined) {
-      if (typeof body.complianceReminderEmailsEnabled !== "boolean") {
-        return NextResponse.json({ error: "Invalid compliance reminder flag" }, { status: 400 });
-      }
-      patch.complianceReminderEmailsEnabled = body.complianceReminderEmailsEnabled;
-    }
-
-    if (body.asicReminderEmailsEnabled !== undefined) {
-      if (typeof body.asicReminderEmailsEnabled !== "boolean") {
-        return NextResponse.json({ error: "Invalid ASIC reminder flag" }, { status: 400 });
-      }
-      patch.asicReminderEmailsEnabled = body.asicReminderEmailsEnabled;
-    }
-
-    if (Object.keys(patch).length === 0) {
+    if (body.asicReminderEmailsEnabled === undefined) {
       return NextResponse.json({ error: "No changes provided" }, { status: 400 });
     }
 
-    const ok = await authStore.setPortReminderSettings(authPortId, patch);
+    if (typeof body.asicReminderEmailsEnabled !== "boolean") {
+      return NextResponse.json({ error: "Invalid ASIC reminder flag" }, { status: 400 });
+    }
+
+    const ok = await authStore.setPortReminderSettings(authPortId, {
+      asicReminderEmailsEnabled: body.asicReminderEmailsEnabled,
+    });
     if (!ok) {
       return NextResponse.json({ error: "Port not found" }, { status: 404 });
     }

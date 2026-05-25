@@ -11,6 +11,8 @@ type AuthPortRow = {
   code: string;
   name: string;
   loginEmail?: string | null;
+  complianceReminderEmailsEnabled?: boolean;
+  asicReminderEmailsEnabled?: boolean;
   isActive: boolean;
   credentials?: { passwordHash: string } | null;
 };
@@ -636,12 +638,8 @@ export function createAuthStore(client: AuthStoreClient) {
       });
       if (!row) return null;
       return {
-        complianceReminderEmailsEnabled: Boolean(
-          (row as { complianceReminderEmailsEnabled?: boolean }).complianceReminderEmailsEnabled
-        ),
-        asicReminderEmailsEnabled: Boolean(
-          (row as { asicReminderEmailsEnabled?: boolean }).asicReminderEmailsEnabled
-        ),
+        complianceReminderEmailsEnabled: Boolean(row.complianceReminderEmailsEnabled),
+        asicReminderEmailsEnabled: Boolean(row.asicReminderEmailsEnabled),
         loginEmail: row.loginEmail ?? null,
       };
     },

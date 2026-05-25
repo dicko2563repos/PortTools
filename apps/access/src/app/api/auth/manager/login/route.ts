@@ -7,6 +7,7 @@ import { setSessionCookie } from "@/lib/session";
 const MAX_PASSWORD_LEN = 128;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** @deprecated Prefer POST /api/auth/login (unified). Kept for direct API callers. */
 export async function POST(request: Request) {
   return withApiErrorHandling("POST /api/auth/manager/login", async () => {
     const rateLimited = await enforceLoginRateLimit(request, "manager");

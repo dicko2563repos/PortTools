@@ -8,7 +8,7 @@ import {
 type RouteContext = { params: Promise<{ portId: string }> };
 
 export async function GET(_request: Request, context: RouteContext) {
-  return withApiErrorHandling("GET /api/admin/ports/[portId]/access", async () => {
+  return withApiErrorHandling("GET /api/ports/[portId]/access", async () => {
     const { portId } = await context.params;
     const auth = await requireAccessRegisterPort(portId);
     if (auth instanceof NextResponse) return auth;
