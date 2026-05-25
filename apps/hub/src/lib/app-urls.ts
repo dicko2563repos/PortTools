@@ -3,6 +3,10 @@ const PMS_APP_URL = process.env.NEXT_PUBLIC_PMS_APP_URL?.trim() || "https://pms.
 const ACCESS_APP_URL =
   process.env.NEXT_PUBLIC_ACCESS_APP_URL?.trim() || "https://access.porttools.com.au";
 
+function appOrigin(baseUrl: string): string {
+  return new URL(baseUrl).origin;
+}
+
 export function pcrRecordUrl(): string {
   return `${PCR_APP_URL}/port/record`;
 }
@@ -21,6 +25,18 @@ export function accessRegisterUrl(movementsPortId: string): string {
 
 export function pmsReportsUrl(): string {
   return `${PMS_APP_URL}/reports`;
+}
+
+export function pcrAppOrigin(): string {
+  return appOrigin(PCR_APP_URL);
+}
+
+export function pmsAppOrigin(): string {
+  return appOrigin(PMS_APP_URL);
+}
+
+export function accessAppOrigin(): string {
+  return appOrigin(ACCESS_APP_URL);
 }
 
 export const SUPPORT_EMAIL =

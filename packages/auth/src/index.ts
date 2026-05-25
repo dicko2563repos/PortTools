@@ -60,6 +60,8 @@ export {
 export {
   appendHubSsoParam,
   createHubIframeSsoToken,
+  hubSsoBridgeUrl,
+  safeReturnPath,
   verifyHubIframeSsoToken,
 } from "./hub-iframe-sso";
 export function normalizePortLoginEmail(email: string): string {

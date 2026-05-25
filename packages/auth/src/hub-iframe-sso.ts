@@ -65,3 +65,22 @@ export function appendHubSsoParam(url: string, token: string): string {
   parsed.searchParams.set("hub_sso", token);
   return parsed.toString();
 }
+
+/** Iframe entry point: exchange hub_sso for an app session cookie, then redirect. */
+export function hubSsoBridgeUrl(
+  appOrigin: string,
+  returnPath: string,
+  token: string
+): string {
+  const parsed = new URL("/api/auth/hub-sso", appOrigin);
+  parsed.searchParams.set("return", returnPath);
+  parsed.searchParams.set("hub_sso", token);
+  return parsed.toString();
+}
+
+export function safeReturnPath(path: string | null, fallback: string): string {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) {
+    return fallback;
+  }
+  return path;
+}

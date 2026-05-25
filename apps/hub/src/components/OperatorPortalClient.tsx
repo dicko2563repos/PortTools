@@ -1,15 +1,8 @@
 "use client";
 
-import { appendHubSsoParam } from "@porttools/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
-import {
-  accessRegisterUrl,
-  pcrRecordUrl,
-  pmsMovementsUrl,
-  pmsReportsUrl,
-} from "@/lib/app-urls";
 
 type Tab = "compliance" | "movements" | "access";
 
@@ -25,12 +18,22 @@ type ReportsSession = {
   email: string;
 };
 
+type PortIframeUrls = {
+  compliance: string;
+  movements: string;
+  access: string;
+};
+
+type ReportsIframeUrls = {
+  reports: string;
+};
+
 export function OperatorPortalClient({
   session,
-  hubSsoToken,
+  iframeUrls,
 }: {
   session: PortSession | ReportsSession;
-  hubSsoToken: string;
+  iframeUrls: PortIframeUrls | ReportsIframeUrls;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("compliance");
@@ -45,7 +48,7 @@ export function OperatorPortalClient({
   }
 
   if (session.type === "reports") {
-    const href = appendHubSsoParam(pmsReportsUrl(), hubSsoToken);
+    const urls = iframeUrls as ReportsIframeUrls;
     return (
       <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-4">
         <header className="flex flex-wrap items-center justify-between gap-4">
@@ -57,19 +60,17 @@ export function OperatorPortalClient({
             {busy ? "Signing out…" : "Sign out"}
           </Button>
         </header>
-        <AppFrame title="Movement reports" src={href} />
+        <AppFrame title="Movement reports" src={urls.reports} />
       </div>
     );
   }
 
+  const urls = iframeUrls as PortIframeUrls;
+
   const tabs: { id: Tab; label: string; href: string }[] = [
-    { id: "compliance", label: "Compliance (PCR)", href: appendHubSsoParam(pcrRecordUrl(), hubSsoToken) },
-    { id: "movements", label: "Movements (PMS)", href: appendHubSsoParam(pmsMovementsUrl(), hubSsoToken) },
-    {
-      id: "access",
-      label: "Access register",
-      href: appendHubSsoParam(accessRegisterUrl(session.movementsPortId), hubSsoToken),
-    },
+    { id: "compliance", label: "Compliance (PCR)", href: urls.compliance },
+    { id: "movements", label: "Movements (PMS)", href: urls.movements },
+    { id: "access", label: "Access register", href: urls.access },
   ];
 
   const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0]!;
