@@ -1,5 +1,6 @@
 "use client";
 
+import { appendHubSsoParam } from "@porttools/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
@@ -24,7 +25,13 @@ type ReportsSession = {
   email: string;
 };
 
-export function OperatorPortalClient({ session }: { session: PortSession | ReportsSession }) {
+export function OperatorPortalClient({
+  session,
+  hubSsoToken,
+}: {
+  session: PortSession | ReportsSession;
+  hubSsoToken: string;
+}) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("compliance");
   const [busy, setBusy] = useState(false);
@@ -38,7 +45,7 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
   }
 
   if (session.type === "reports") {
-    const href = pmsReportsUrl();
+    const href = appendHubSsoParam(pmsReportsUrl(), hubSsoToken);
     return (
       <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-4">
         <header className="flex flex-wrap items-center justify-between gap-4">
@@ -56,12 +63,12 @@ export function OperatorPortalClient({ session }: { session: PortSession | Repor
   }
 
   const tabs: { id: Tab; label: string; href: string }[] = [
-    { id: "compliance", label: "Compliance (PCR)", href: pcrRecordUrl() },
-    { id: "movements", label: "Movements (PMS)", href: pmsMovementsUrl() },
+    { id: "compliance", label: "Compliance (PCR)", href: appendHubSsoParam(pcrRecordUrl(), hubSsoToken) },
+    { id: "movements", label: "Movements (PMS)", href: appendHubSsoParam(pmsMovementsUrl(), hubSsoToken) },
     {
       id: "access",
       label: "Access register",
-      href: accessRegisterUrl(session.movementsPortId),
+      href: appendHubSsoParam(accessRegisterUrl(session.movementsPortId), hubSsoToken),
     },
   ];
 

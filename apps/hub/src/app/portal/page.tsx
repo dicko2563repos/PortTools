@@ -1,3 +1,4 @@
+import { createHubIframeSsoToken } from "@porttools/auth";
 import { redirect } from "next/navigation";
 import { OperatorPortalClient } from "@/components/OperatorPortalClient";
 import { prisma } from "@/lib/db";
@@ -9,10 +10,15 @@ export default async function PortalPage() {
     redirect("/");
   }
 
+  const hubSsoToken = await createHubIframeSsoToken(session);
+
   if (session.type === "reports") {
     return (
       <main className="flex min-h-screen flex-col p-4 sm:p-6">
-        <OperatorPortalClient session={{ type: "reports", email: session.email }} />
+        <OperatorPortalClient
+          session={{ type: "reports", email: session.email }}
+          hubSsoToken={hubSsoToken}
+        />
       </main>
     );
   }
@@ -31,6 +37,7 @@ export default async function PortalPage() {
           portName: authPort?.name ?? session.portCode,
           movementsPortId: session.movementsPortId,
         }}
+        hubSsoToken={hubSsoToken}
       />
     </main>
   );

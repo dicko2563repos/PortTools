@@ -57,6 +57,11 @@ export {
   createOperatorSessionToken,
   verifyOperatorSessionToken,
 } from "./operator-session-jwt";
+export {
+  appendHubSsoParam,
+  createHubIframeSsoToken,
+  verifyHubIframeSsoToken,
+} from "./hub-iframe-sso";
 export function normalizePortLoginEmail(email: string): string {
   return email.trim().toLowerCase();
 }

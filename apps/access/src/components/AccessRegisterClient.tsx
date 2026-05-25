@@ -122,7 +122,7 @@ function FobHistoryPanel({
             {entry.kind === "checkout" ? (
               <div>
                 <p className="font-medium">
-                  {entry.signedInAt ? "Checkout (returned)" : "Signed out"}
+                  {entry.signedInAt ? "Sign out (returned)" : "Sign out"}
                 </p>
                 {entry.holderType === "staff" && entry.staffAsic ? (
                   <p>

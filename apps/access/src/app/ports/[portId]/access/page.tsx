@@ -6,17 +6,27 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { requireManagerPort } from "@/lib/access-register";
 import { authStore } from "@/lib/auth-store";
 import { hasAccessPinUnlock } from "@/lib/access-pin-unlock";
+import { tryEstablishSessionFromHubSso } from "@/lib/hub-sso";
 import { getSession } from "@/lib/session";
 
-type PageProps = { params: Promise<{ portId: string }> };
+type PageProps = {
+  params: Promise<{ portId: string }>;
+  searchParams: Promise<{ hub_sso?: string }>;
+};
 
-export default async function AccessRegisterPage({ params }: PageProps) {
+export default async function AccessRegisterPage({ params, searchParams }: PageProps) {
+  const { hub_sso } = await searchParams;
+  const { portId } = await params;
+
+  if (hub_sso && (await tryEstablishSessionFromHubSso(hub_sso))) {
+    redirect(`/ports/${portId}/access`);
+  }
+
   const session = await getSession();
   if (!session) {
     redirect("/login");
   }
 
-  const { portId } = await params;
   const portResult = await requireManagerPort(portId, session);
   if (portResult instanceof NextResponse) {
     notFound();
