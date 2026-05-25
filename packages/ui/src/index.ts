@@ -24,7 +24,7 @@ export type { HubAppLink, HubHomeProps } from "./HubHome";
 export { HomeLink } from "./HomeLink";
 export { Input } from "./Input";
 export { LoginForm } from "./LoginForm";
-export type { LoginFormProps, LoginMode } from "./LoginForm";
+export type { LoginFormProps, LoginMode, LoginEntryApp } from "./LoginForm";
 export { TabSessionGuard } from "./TabSessionGuard";
 export type { TabSessionGuardProps } from "./TabSessionGuard";
 export {

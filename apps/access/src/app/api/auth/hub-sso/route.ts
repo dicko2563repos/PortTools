@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { safeReturnPath, verifyHubIframeSsoToken } from "@porttools/auth";
-import { createSessionToken, SESSION_COOKIE } from "@/lib/session";
+import { createSessionToken, SESSION_COOKIE, type SessionPayload } from "@/lib/session";
+import { setPorttoolsSessionCookie } from "@/lib/porttools-session";
 
 function sessionCookieOptions() {
   return {
@@ -9,6 +10,29 @@ function sessionCookieOptions() {
     sameSite: "lax" as const,
     path: "/",
   };
+}
+
+function accessSessionFromOperator(
+  operator: NonNullable<Awaited<ReturnType<typeof verifyHubIframeSsoToken>>>
+): SessionPayload | null {
+  if (operator.type === "port") {
+    return {
+      type: "port",
+      authPortId: operator.authPortId,
+      movementsPortId: operator.movementsPortId,
+      portCode: operator.portCode,
+      email: operator.email,
+    };
+  }
+  if (operator.type === "manager") {
+    return {
+      type: "manager",
+      managerId: operator.managerId,
+      email: operator.email,
+      authPortIds: operator.authPortIds,
+    };
+  }
+  return null;
 }
 
 export async function GET(request: Request) {
@@ -21,18 +45,18 @@ export async function GET(request: Request) {
   }
 
   const operator = await verifyHubIframeSsoToken(hubSso);
-  if (!operator || operator.type !== "port") {
+  if (!operator) {
     return NextResponse.redirect(new URL("/login", url.origin));
   }
 
-  const sessionToken = await createSessionToken({
-    type: "port",
-    authPortId: operator.authPortId,
-    movementsPortId: operator.movementsPortId,
-    portCode: operator.portCode,
-    email: operator.email,
-  });
+  const accessSession = accessSessionFromOperator(operator);
+  if (!accessSession) {
+    return NextResponse.redirect(new URL("/login", url.origin));
+  }
 
+  await setPorttoolsSessionCookie(operator);
+
+  const sessionToken = await createSessionToken(accessSession);
   const response = NextResponse.redirect(new URL(returnPath, url.origin));
   response.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
   return response;

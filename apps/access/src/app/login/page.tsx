@@ -1,16 +1,16 @@
 import { PlatformHomeLink, LoginForm } from "@porttools/ui";
 import { SUPPORT_EMAIL } from "@/lib/support";
 
-export default function ManagerLoginPage() {
+export default function AccessLoginPage() {
   return (
     <main className="relative mx-auto max-w-md p-8">
       <PlatformHomeLink className="absolute left-8 top-8" />
       <h1 className="mt-4 text-xl font-semibold">Access register</h1>
       <p className="mt-1 text-sm text-slate-600">
-        Manager login for staff ASIC and FOB registers at your assigned port(s).
+        Staff: port code and shared password. Managers: port email and manager password.
       </p>
       <div className="mt-6">
-        <LoginForm mode="manager" managerRedirect="/ports" />
+        <LoginForm mode="unified" entryApp="access" />
       </div>
       <p className="mt-4 text-sm text-slate-600">
         Need an account? Contact{" "}

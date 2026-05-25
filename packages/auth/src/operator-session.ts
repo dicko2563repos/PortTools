@@ -15,7 +15,21 @@ export type ReportsOperatorSession = {
   email: string;
 };
 
-export type OperatorSessionPayload = PortOperatorSession | ReportsOperatorSession;
+export type ManagerOperatorSession = {
+  type: "manager";
+  managerId: string;
+  email: string;
+  authPortIds: string[];
+  authPortId: string;
+  portCode: string;
+  publicPortId: string;
+  movementsPortId: string;
+};
+
+export type OperatorSessionPayload =
+  | PortOperatorSession
+  | ReportsOperatorSession
+  | ManagerOperatorSession;
 
 /** Shared across hub and (future) PCR/PMS SSO. Set PORTTOOLS_COOKIE_DOMAIN in non-prod if needed. */
 export function getPorttoolsCookieDomain(): string | undefined {

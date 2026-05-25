@@ -52,6 +52,15 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
         authPortIds,
       };
     }
+    if (payload.type === "port" && typeof payload.authPortId === "string") {
+      return {
+        type: "port",
+        authPortId: payload.authPortId,
+        movementsPortId: String(payload.movementsPortId ?? ""),
+        portCode: String(payload.portCode ?? ""),
+        email: String(payload.email ?? ""),
+      };
+    }
     return null;
   } catch {
     return null;
@@ -70,21 +79,33 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!operatorToken) return null;
 
   const operator = await verifyOperatorSessionToken(operatorToken);
-  if (!operator || operator.type !== "port") return null;
+  if (!operator) return null;
 
-  return {
-    type: "port",
-    authPortId: operator.authPortId,
-    movementsPortId: operator.movementsPortId,
-    portCode: operator.portCode,
-    email: operator.email,
-  };
+  if (operator.type === "port") {
+    return {
+      type: "port",
+      authPortId: operator.authPortId,
+      movementsPortId: operator.movementsPortId,
+      portCode: operator.portCode,
+      email: operator.email,
+    };
+  }
+
+  if (operator.type === "manager") {
+    return {
+      type: "manager",
+      managerId: operator.managerId,
+      email: operator.email,
+      authPortIds: operator.authPortIds,
+    };
+  }
+
+  return null;
 }
 
 export async function setSessionCookie(payload: SessionPayload): Promise<void> {
   const token = await createSessionToken(payload);
   const cookieStore = await cookies();
-  // Session cookie (no maxAge) — cleared when the browser session ends.
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

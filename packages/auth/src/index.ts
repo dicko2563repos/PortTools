@@ -52,6 +52,7 @@ export {
   type OperatorSessionPayload,
   type PortOperatorSession,
   type ReportsOperatorSession,
+  type ManagerOperatorSession,
 } from "./operator-session";
 export {
   createOperatorSessionToken,
@@ -64,6 +65,27 @@ export {
   safeReturnPath,
   verifyHubIframeSsoToken,
 } from "./hub-iframe-sso";
+export {
+  resolveUnifiedLogin,
+  UNIFIED_LOGIN_EMAIL_RE,
+  UNIFIED_LOGIN_MAX_PASSWORD_LEN,
+  UNIFIED_LOGIN_PORT_CODE_RE,
+  type ResolvedPortIds,
+  type UnifiedLoginPortResolver,
+  type UnifiedLoginSuccess,
+} from "./unified-login";
+export { createUnifiedLoginPortResolver } from "./unified-login-resolver";
+export {
+  unifiedLoginRedirectPath,
+  type LoginEntryApp,
+  type UnifiedLoginRedirectOptions,
+} from "./unified-login-redirect";
+export { operatorSessionFromUnifiedLogin } from "./operator-session-build";
+export {
+  handleUnifiedLoginRequest,
+  type UnifiedLoginApiResult,
+  type UnifiedLoginRequestBody,
+} from "./unified-login-api";
 export function normalizePortLoginEmail(email: string): string {
   return email.trim().toLowerCase();
 }

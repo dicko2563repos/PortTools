@@ -24,9 +24,14 @@ Platform admin stays at **admin.porttools.com.au**.
 - Hub tab-session gate — closing the browser tab/window requires login again (same pattern as admin/access)
 - Access: port-operator sessions skip the access tab gate; manager login unchanged
 
-## Phase 3 (in progress)
+## Phase 3 (shipped)
 
 - **Access register PIN** — admin sets a numeric PIN per port; hub port operators enter it before the register loads (managers using access.porttools.com.au skip the PIN)
+- **Unified login** — one form on hub, PCR, PMS, and Access:
+  - Staff: **port code** + shared password
+  - Managers: **port login email** + manager password (same permissions as staff; multi-port switcher in hub portal)
+  - Reports: reports email + password → PMS reports (or hub reports tab)
+  - Sets shared `porttools_session` on `.porttools.com.au` (Option A SSO)
 - Compliance reminder cron emails when `reminders_enabled` (planned)
 
 ## Database migration

@@ -6,7 +6,9 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { markTabSessionActive, TAB_SESSION_KEYS } from "./tab-session";
 
-export type LoginMode = "port" | "admin" | "reports" | "manager" | "operator";
+export type LoginMode = "port" | "admin" | "reports" | "manager" | "operator" | "unified";
+
+export type LoginEntryApp = "hub" | "pcr" | "pms" | "access";
 
 export type LoginFormProps = {
   mode: LoginMode;
@@ -15,11 +17,14 @@ export type LoginFormProps = {
   reportsLoginEndpoint?: string;
   managerLoginEndpoint?: string;
   operatorLoginEndpoint?: string;
+  unifiedLoginEndpoint?: string;
+  entryApp?: LoginEntryApp;
   portRedirect?: string;
   adminRedirect?: string;
   reportsRedirect?: string;
   managerRedirect?: string;
   operatorRedirect?: string;
+  unifiedRedirect?: string;
 };
 
 export function LoginForm({
@@ -29,15 +34,42 @@ export function LoginForm({
   reportsLoginEndpoint = "/api/auth/reports/login",
   managerLoginEndpoint = "/api/auth/manager/login",
   operatorLoginEndpoint = "/api/auth/login",
+  unifiedLoginEndpoint = "/api/auth/login",
+  entryApp = "hub",
   portRedirect = "/port/record",
   adminRedirect = "/admin",
   reportsRedirect = "/reports",
   managerRedirect = "/ports",
   operatorRedirect = "/portal",
+  unifiedRedirect,
 }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function markSessionForLoginType(type?: string) {
+    if (mode === "admin") {
+      markTabSessionActive(TAB_SESSION_KEYS.admin);
+      return;
+    }
+    if (mode === "unified") {
+      if (type === "reports" || entryApp === "hub") {
+        markTabSessionActive(TAB_SESSION_KEYS.hub);
+      }
+      if (type === "manager" || entryApp === "access") {
+        markTabSessionActive(TAB_SESSION_KEYS.access);
+      }
+      if (type === "port" && entryApp === "access") {
+        markTabSessionActive(TAB_SESSION_KEYS.access);
+      }
+      return;
+    }
+    if (mode === "manager") {
+      markTabSessionActive(TAB_SESSION_KEYS.access);
+    } else if (mode === "operator") {
+      markTabSessionActive(TAB_SESSION_KEYS.hub);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -52,13 +84,22 @@ export function LoginForm({
           ? adminLoginEndpoint
           : mode === "manager"
             ? managerLoginEndpoint
-            : mode === "operator"
-              ? operatorLoginEndpoint
-              : reportsLoginEndpoint;
+            : mode === "unified"
+              ? unifiedLoginEndpoint
+              : mode === "operator"
+                ? operatorLoginEndpoint
+                : reportsLoginEndpoint;
+
     const body =
       mode === "port"
         ? { code: form.get("code"), password: form.get("password") }
-        : { email: form.get("email"), password: form.get("password") };
+        : mode === "unified"
+          ? {
+              identifier: form.get("identifier"),
+              password: form.get("password"),
+              entryApp,
+            }
+          : { email: form.get("email"), password: form.get("password") };
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -73,27 +114,37 @@ export function LoginForm({
       return;
     }
 
-    if (mode === "admin") {
-      markTabSessionActive(TAB_SESSION_KEYS.admin);
-    } else if (mode === "manager") {
-      markTabSessionActive(TAB_SESSION_KEYS.access);
-    } else if (mode === "operator") {
-      markTabSessionActive(TAB_SESSION_KEYS.hub);
+    const data = (await res.json()) as {
+      type?: string;
+      redirect?: string;
+    };
+
+    markSessionForLoginType(data.type);
+
+    const destination =
+      mode === "unified"
+        ? (data.redirect ?? unifiedRedirect ?? operatorRedirect)
+        : mode === "port"
+          ? portRedirect
+          : mode === "admin"
+            ? adminRedirect
+            : mode === "manager"
+              ? managerRedirect
+              : mode === "operator"
+                ? operatorRedirect
+                : reportsRedirect;
+
+    if (destination.startsWith("http://") || destination.startsWith("https://")) {
+      window.location.assign(destination);
+      return;
     }
 
-    router.push(
-      mode === "port"
-        ? portRedirect
-        : mode === "admin"
-          ? adminRedirect
-          : mode === "manager"
-            ? managerRedirect
-            : mode === "operator"
-              ? operatorRedirect
-              : reportsRedirect
-    );
+    router.push(destination);
     router.refresh();
   }
+
+  const identifierLabel =
+    mode === "port" ? "Port code" : mode === "unified" ? "Email or port code" : "Email";
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -105,6 +156,16 @@ export function LoginForm({
             required
             autoComplete="username"
             placeholder="KGC"
+          />
+        </label>
+      ) : mode === "unified" ? (
+        <label className="flex flex-col gap-1 text-sm">
+          {identifierLabel}
+          <Input
+            name="identifier"
+            required
+            autoComplete="username"
+            placeholder="ops@port.example or KGC"
           />
         </label>
       ) : (

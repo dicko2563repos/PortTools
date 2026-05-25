@@ -8,10 +8,10 @@ export default function HomePage() {
       <HubHomeRedirect />
       <BrandTitle productName="PortTools" className="mt-4" />
       <p className="mt-4 text-center text-sm text-slate-600">
-        Sign in with your port or reports email and password.
+        Staff: port code and shared password. Managers and reports: port or account email.
       </p>
       <div className="mt-6">
-        <LoginForm mode="operator" operatorRedirect="/portal" />
+        <LoginForm mode="unified" entryApp="hub" unifiedRedirect="/portal" />
       </div>
       <p className="mt-4 text-center text-sm text-slate-600">
         Platform admin?{" "}

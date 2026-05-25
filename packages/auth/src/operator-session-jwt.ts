@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import {
+  type ManagerOperatorSession,
   type OperatorSessionPayload,
   type PortOperatorSession,
   type ReportsOperatorSession,
@@ -50,6 +51,28 @@ export async function verifyOperatorSessionToken(
         reportsUserId: payload.reportsUserId,
         email: String(payload.email ?? ""),
       } satisfies ReportsOperatorSession;
+    }
+    if (payload.type === "manager" && typeof payload.managerId === "string") {
+      const authPortIds = Array.isArray(payload.authPortIds)
+        ? payload.authPortIds.filter((id): id is string => typeof id === "string")
+        : [];
+      if (
+        typeof payload.authPortId !== "string" ||
+        typeof payload.publicPortId !== "string" ||
+        typeof payload.movementsPortId !== "string"
+      ) {
+        return null;
+      }
+      return {
+        type: "manager",
+        managerId: payload.managerId,
+        email: String(payload.email ?? ""),
+        authPortIds,
+        authPortId: payload.authPortId,
+        portCode: String(payload.portCode ?? ""),
+        publicPortId: payload.publicPortId,
+        movementsPortId: payload.movementsPortId,
+      } satisfies ManagerOperatorSession;
     }
     return null;
   } catch {

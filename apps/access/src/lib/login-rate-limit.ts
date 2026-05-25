@@ -3,7 +3,7 @@ import { checkLoginRateLimit, clientIpFromRequest } from "@porttools/auth";
 
 export async function enforceLoginRateLimit(
   request: Request,
-  scope: "manager"
+  scope: "manager" | "operator" = "operator"
 ): Promise<NextResponse | null> {
   const ip = clientIpFromRequest(request);
   const result = await checkLoginRateLimit(request, scope, ip);

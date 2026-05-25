@@ -160,7 +160,8 @@ export type AuthStoreClient = {
       include?: { portAccess: true };
     }): Promise<ManagerRow | null>;
     findMany(args: {
-      orderBy: { email: "asc" | "desc" };
+      where?: { isActive?: boolean; portAccess?: { some: { portId: string } } };
+      orderBy?: { email: "asc" | "desc" };
       include?: { portAccess: true };
     }): Promise<ManagerRow[]>;
     create(args: {
@@ -341,6 +342,55 @@ export function createAuthStore(client: AuthStoreClient) {
       const authPortIds = (manager.portAccess ?? []).map((row) => row.portId);
       if (authPortIds.length === 0) return null;
       return { managerId: manager.id, email: manager.email, authPortIds };
+    },
+
+    async verifyManagerLoginForPortEmail(
+      portLoginEmail: string,
+      password: string
+    ): Promise<VerifiedManagerLogin | null> {
+      const normalized = normalizePortLoginEmail(portLoginEmail);
+      if (!isValidPortLoginEmail(normalized)) return null;
+
+      const authPort = await client.authPort.findUnique({
+        where: { loginEmail: normalized },
+      });
+      if (!authPort?.isActive) return null;
+
+      const managers = await client.manager.findMany({
+        where: { isActive: true, portAccess: { some: { portId: authPort.id } } },
+        include: { portAccess: true },
+      });
+      if (managers.length === 0) return null;
+
+      const preferred = managers.find((row) => row.email === normalized);
+      const candidates = preferred ? [preferred] : managers;
+
+      for (const manager of candidates) {
+        if (!(await verifyPassword(password, manager.passwordHash))) continue;
+        const authPortIds = (manager.portAccess ?? []).map((row) => row.portId);
+        if (authPortIds.length === 0) continue;
+        return { managerId: manager.id, email: manager.email, authPortIds };
+      }
+
+      return null;
+    },
+
+    async getAuthPortById(authPortId: string): Promise<{
+      id: string;
+      code: string;
+      loginEmail: string | null;
+      isActive: boolean;
+    } | null> {
+      const row = await client.authPort.findUnique({
+        where: { id: authPortId },
+      });
+      if (!row) return null;
+      return {
+        id: row.id,
+        code: row.code,
+        loginEmail: row.loginEmail ?? null,
+        isActive: row.isActive,
+      };
     },
 
     async listManagers(): Promise<
