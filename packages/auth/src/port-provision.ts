@@ -59,8 +59,8 @@ async function ensureMovementsPort(
   isActive: boolean
 ): Promise<void> {
   await tx.$executeRaw`
-    INSERT INTO movements.ports (id, code, name, email_to, is_active, created_at)
-    SELECT gen_random_uuid(), ${code}, ${name}, '', ${isActive}, NOW()
+    INSERT INTO movements.ports (id, code, name, is_active, created_at)
+    SELECT gen_random_uuid(), ${code}, ${name}, ${isActive}, NOW()
     WHERE NOT EXISTS (SELECT 1 FROM movements.ports WHERE code = ${code})
   `;
 }
