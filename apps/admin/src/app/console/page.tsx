@@ -34,8 +34,8 @@ export default async function AdminConsolePage() {
       </nav>
 
       <div className="space-y-12">
-        <AdminChangePasswordForm />
         <AdminCredentialsConsole currentAdminId={session.adminId} />
+        <AdminChangePasswordForm />
       </div>
     </main>
   );
