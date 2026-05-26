@@ -21,6 +21,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       const body = (await parseJsonBody(request)) as {
         password?: string;
         isActive?: boolean;
+        receivePmsReports?: boolean;
       };
 
       const user = await prisma.reportsUser.findUnique({ where: { id: reportsUserId } });
@@ -30,8 +31,13 @@ export async function PATCH(request: Request, context: RouteContext) {
 
       const password = body.password?.trim() ?? "";
       const isActive = body.isActive;
+      const receivePmsReports = body.receivePmsReports;
 
-      if (password.length === 0 && isActive === undefined) {
+      if (
+        password.length === 0 &&
+        isActive === undefined &&
+        receivePmsReports === undefined
+      ) {
         return NextResponse.json({ error: "No changes provided" }, { status: 400 });
       }
       if (password.length > 0 && (password.length < 8 || password.length > MAX_PASSWORD_LEN)) {
@@ -47,10 +53,22 @@ export async function PATCH(request: Request, context: RouteContext) {
       if (isActive !== undefined) {
         await authStore.setReportsUserActive(reportsUserId, isActive);
       }
+      if (receivePmsReports !== undefined) {
+        if (typeof receivePmsReports !== "boolean") {
+          return NextResponse.json({ error: "Invalid receive PMS reports flag" }, { status: 400 });
+        }
+        await authStore.setReportsUserReceivePmsReports(reportsUserId, receivePmsReports);
+      }
 
       const updated = await prisma.reportsUser.findUnique({
         where: { id: reportsUserId },
-        select: { id: true, email: true, isActive: true, createdAt: true },
+        select: {
+          id: true,
+          email: true,
+          isActive: true,
+          receivePmsReports: true,
+          createdAt: true,
+        },
       });
 
       return NextResponse.json({

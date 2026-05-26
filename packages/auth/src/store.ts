@@ -38,6 +38,7 @@ type ReportsUserRow = {
   email: string;
   passwordHash: string;
   isActive: boolean;
+  receivePmsReports?: boolean;
 };
 
 type ManagerRow = {
@@ -152,12 +153,25 @@ export type AuthStoreClient = {
       where: { email: string } | { id: string };
     }): Promise<ReportsUserRow | null>;
     create(args: {
-      data: { email: string; passwordHash: string; isActive?: boolean };
+      data: {
+        email: string;
+        passwordHash: string;
+        isActive?: boolean;
+        receivePmsReports?: boolean;
+      };
     }): Promise<{ id: string; email: string }>;
     update(args: {
       where: { id: string };
-      data: { passwordHash?: string; isActive?: boolean };
+      data: {
+        passwordHash?: string;
+        isActive?: boolean;
+        receivePmsReports?: boolean;
+      };
     }): Promise<unknown>;
+    findMany(args: {
+      where?: { isActive?: boolean; receivePmsReports?: boolean };
+      select?: { email: true };
+    }): Promise<Array<{ email: string }>>;
   };
   manager: {
     findUnique(args: {
@@ -308,6 +322,7 @@ export function createAuthStore(client: AuthStoreClient) {
       email: string;
       password: string;
       isActive?: boolean;
+      receivePmsReports?: boolean;
     }): Promise<{ id: string; email: string }> {
       const email = normalizeReportsEmail(input.email);
       return client.reportsUser.create({
@@ -315,6 +330,9 @@ export function createAuthStore(client: AuthStoreClient) {
           email,
           passwordHash: await hashPassword(input.password),
           ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+          ...(input.receivePmsReports !== undefined
+            ? { receivePmsReports: input.receivePmsReports }
+            : {}),
         },
       });
     },
@@ -331,6 +349,24 @@ export function createAuthStore(client: AuthStoreClient) {
         where: { id: reportsUserId },
         data: { isActive },
       });
+    },
+
+    async setReportsUserReceivePmsReports(
+      reportsUserId: string,
+      receivePmsReports: boolean
+    ): Promise<void> {
+      await client.reportsUser.update({
+        where: { id: reportsUserId },
+        data: { receivePmsReports },
+      });
+    },
+
+    async listPmsReportRecipientEmails(): Promise<string[]> {
+      const users = await client.reportsUser.findMany({
+        where: { isActive: true, receivePmsReports: true },
+        select: { email: true },
+      });
+      return users.map((user) => user.email);
     },
 
     async verifyManagerLogin(

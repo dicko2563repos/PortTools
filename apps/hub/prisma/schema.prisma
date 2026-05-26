@@ -42,6 +42,7 @@ model ReportsUser {
   email        String   @unique
   passwordHash String   @map("password_hash")
   isActive     Boolean  @default(true) @map("is_active")
+  receivePmsReports Boolean @default(false) @map("receive_pms_reports")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@schema("porttools")

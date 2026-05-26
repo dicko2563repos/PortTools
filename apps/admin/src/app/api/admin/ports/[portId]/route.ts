@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import {
   createAuthStore,
-  parseReportEmailRecipients,
   syncPortMetaEverywhere,
   type AuthStoreClient,
 } from "@porttools/auth";
 import { PUBLIC_ERRORS, parseJsonBody, withApiErrorHandling } from "@/lib/api-error";
 import { prisma } from "@/lib/db";
-import {
-  getReportEmailsByPortCodes,
-  setReportEmailForPortCode,
-} from "@/lib/movements-port-email";
 import { getSession } from "@/lib/session";
 
 type RouteContext = { params: Promise<{ portId: string }> };
@@ -29,7 +24,6 @@ export async function PATCH(request: Request, context: RouteContext) {
       isActive?: boolean;
       accessPin?: string;
       password?: string;
-      reportEmailTo?: string;
     };
 
     const existing = await prisma.authPort.findUnique({
@@ -67,22 +61,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
     }
 
-    let reportEmailTo: string | undefined;
-    if (body.reportEmailTo !== undefined) {
-      const parsed = parseReportEmailRecipients(body.reportEmailTo);
-      if (parsed === null) {
-        return NextResponse.json({ error: "Invalid report email address(es)" }, { status: 400 });
-      }
-      reportEmailTo = parsed;
-    }
-
     const hasMetaChange =
       name !== undefined ||
       body.loginEmail !== undefined ||
       body.isActive !== undefined ||
       password.length >= 8 ||
-      (body.accessPin !== undefined && body.accessPin.trim().length > 0) ||
-      reportEmailTo !== undefined;
+      (body.accessPin !== undefined && body.accessPin.trim().length > 0);
 
     if (!hasMetaChange) {
       return NextResponse.json({ error: "No changes provided" }, { status: 400 });
@@ -136,16 +120,6 @@ export async function PATCH(request: Request, context: RouteContext) {
       throw error;
     }
 
-    if (reportEmailTo !== undefined) {
-      const updated = await setReportEmailForPortCode(prisma, existing.code, reportEmailTo);
-      if (!updated) {
-        return NextResponse.json(
-          { error: "Movements port record missing for this code" },
-          { status: 503 }
-        );
-      }
-    }
-
     const port = await prisma.authPort.findUnique({
       where: { id: portId },
       select: {
@@ -163,13 +137,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const { accessPin, ...rest } = port;
-    const reportEmails = await getReportEmailsByPortCodes(prisma, [port.code]);
-    return NextResponse.json({
-      port: {
-        ...rest,
-        hasAccessPin: accessPin !== null,
-        reportEmailTo: reportEmails.get(port.code) ?? "",
-      },
-    });
+    return NextResponse.json({ port: { ...rest, hasAccessPin: accessPin !== null } });
   }, { fallback: PUBLIC_ERRORS.saveFailed });
 }

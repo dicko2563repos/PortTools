@@ -16,7 +16,13 @@ export async function GET() {
 
     const users = await prisma.reportsUser.findMany({
       orderBy: { email: "asc" },
-      select: { id: true, email: true, isActive: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        isActive: true,
+        receivePmsReports: true,
+        createdAt: true,
+      },
     });
 
     return NextResponse.json({
@@ -40,6 +46,7 @@ export async function POST(request: Request) {
       const body = (await parseJsonBody(request)) as {
         email?: string;
         password?: string;
+        receivePmsReports?: boolean;
       };
 
       const email = body.email?.trim().toLowerCase() ?? "";
@@ -60,10 +67,20 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Email already in use" }, { status: 409 });
       }
 
-      const user = await authStore.createReportsUser({ email, password });
+      const user = await authStore.createReportsUser({
+        email,
+        password,
+        ...(body.receivePmsReports === true ? { receivePmsReports: true } : {}),
+      });
       const created = await prisma.reportsUser.findUnique({
         where: { id: user.id },
-        select: { id: true, email: true, isActive: true, createdAt: true },
+        select: {
+          id: true,
+          email: true,
+          isActive: true,
+          receivePmsReports: true,
+          createdAt: true,
+        },
       });
 
       return NextResponse.json(

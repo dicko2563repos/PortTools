@@ -69,6 +69,7 @@ export function AdminCredentialAddModal({
 
   const [reportsEmail, setReportsEmail] = useState("");
   const [reportsPassword, setReportsPassword] = useState("");
+  const [reportsReceivePms, setReportsReceivePms] = useState(false);
 
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
@@ -148,7 +149,11 @@ export function AdminCredentialAddModal({
     const res = await fetch("/api/admin/reports-users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: reportsPassword }),
+      body: JSON.stringify({
+        email,
+        password: reportsPassword,
+        receivePmsReports: reportsReceivePms,
+      }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -346,6 +351,15 @@ export function AdminCredentialAddModal({
               onChange={setReportsPassword}
               onGenerate={() => setReportsPassword(generateSecurePassword())}
             />
+            <label className="flex items-start gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={reportsReceivePms}
+                onChange={(e) => setReportsReceivePms(e.target.checked)}
+              />
+              <span>Receive PMS reports (email when any port sends a period report)</span>
+            </label>
             <Button type="submit" disabled={busy} className="text-sm">
               Create reports user
             </Button>

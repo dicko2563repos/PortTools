@@ -7,7 +7,6 @@ import {
 } from "@porttools/auth";
 import { PUBLIC_ERRORS, parseJsonBody, withApiErrorHandling } from "@/lib/api-error";
 import { prisma } from "@/lib/db";
-import { getReportEmailsByPortCodes } from "@/lib/movements-port-email";
 import { getSession } from "@/lib/session";
 
 export async function GET() {
@@ -29,16 +28,10 @@ export async function GET() {
       },
     });
 
-    const reportEmails = await getReportEmailsByPortCodes(
-      prisma,
-      ports.map((port) => port.code)
-    );
-
     return NextResponse.json({
       ports: ports.map(({ accessPin, ...port }) => ({
         ...port,
         hasAccessPin: accessPin !== null,
-        reportEmailTo: reportEmails.get(port.code) ?? "",
       })),
     });
   }, { fallback: PUBLIC_ERRORS.loadFailed });
