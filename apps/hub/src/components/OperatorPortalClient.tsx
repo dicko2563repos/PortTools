@@ -191,78 +191,69 @@ export function OperatorPortalClient({
       </header>
 
       <div className="space-y-2 border-b border-slate-200 pb-2">
-        <nav className="flex flex-wrap items-center gap-2">
-          {tabs.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              className={
-                tab === item.id
-                  ? "rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white"
-                  : "rounded-lg px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
-              }
-            >
-              {item.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setCustomizeTabs((open) => !open)}
-            className="rounded-lg px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-            aria-expanded={customizeTabs}
-          >
-            {customizeTabs ? "Done" : "Tab order"}
-          </button>
-        </nav>
-
         {customizeTabs ? (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <p className="mb-2 text-xs text-slate-600">
-              Tabs open left to right. The first tab loads on sign-in; background loading
-              follows this order. Saved for this login on this browser.
+          <>
+            <p className="text-xs text-slate-600">
+              Use the arrows to set left-to-right order. The first tab opens on sign-in;
+              background loading follows this order. Saved for this login on this browser.
             </p>
-            <ul className="space-y-1">
+            <div
+              className="flex flex-wrap items-center gap-2"
+              role="group"
+              aria-label="Tab order"
+            >
               {tabOrder.map((id, index) => (
-                <li
+                <TabOrderChip
                   key={id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white px-2 py-1.5 text-sm"
-                >
-                  <span>
-                    {index + 1}. {PORTAL_TAB_LABELS[id]}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => moveTab(index, -1)}
-                      className="rounded px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                      aria-label={`Move ${PORTAL_TAB_LABELS[id]} left`}
-                    >
-                      ←
-                    </button>
-                    <button
-                      type="button"
-                      disabled={index === tabOrder.length - 1}
-                      onClick={() => moveTab(index, 1)}
-                      className="rounded px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                      aria-label={`Move ${PORTAL_TAB_LABELS[id]} right`}
-                    >
-                      →
-                    </button>
-                  </span>
-                </li>
+                  id={id}
+                  index={index}
+                  total={tabOrder.length}
+                  onMoveLeft={() => moveTab(index, -1)}
+                  onMoveRight={() => moveTab(index, 1)}
+                />
               ))}
-            </ul>
+              <button
+                type="button"
+                onClick={() => setCustomizeTabs(false)}
+                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white"
+              >
+                Done
+              </button>
+            </div>
             <button
               type="button"
               onClick={resetTabOrder}
-              className="mt-2 text-xs text-slate-500 underline hover:text-slate-700"
+              className="text-xs text-slate-500 underline hover:text-slate-700"
             >
               Reset to default order
             </button>
-          </div>
-        ) : null}
+          </>
+        ) : (
+          <nav className="flex flex-wrap items-center gap-2">
+            {tabs.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id)}
+                className={
+                  tab === item.id
+                    ? "rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white"
+                    : "rounded-lg px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+                }
+              >
+                {item.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setCustomizeTabs(true)}
+              className="rounded-lg px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              aria-expanded={false}
+            >
+              Tab order
+            </button>
+          </nav>
+        )}
       </div>
 
       <PortalIframePanels key={portStackKey} tabs={tabs} activeTab={tab} />
@@ -322,6 +313,53 @@ function PortalIframePanels({
           />
         );
       })}
+    </div>
+  );
+}
+
+function TabOrderChip({
+  id,
+  index,
+  total,
+  onMoveLeft,
+  onMoveRight,
+}: {
+  id: Tab;
+  index: number;
+  total: number;
+  onMoveLeft: () => void;
+  onMoveRight: () => void;
+}) {
+  const label = PORTAL_TAB_LABELS[id];
+
+  return (
+    <div className="flex items-stretch overflow-hidden rounded-lg border border-dashed border-slate-300 bg-white shadow-sm">
+      <button
+        type="button"
+        disabled={index === 0}
+        onClick={onMoveLeft}
+        className="border-r border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
+        aria-label={`Move ${label} left`}
+      >
+        ←
+      </button>
+      <div className="flex min-w-0 flex-col justify-center px-3 py-1.5 text-sm text-slate-900">
+        {index === 0 ? (
+          <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+            Opens first
+          </span>
+        ) : null}
+        <span>{label}</span>
+      </div>
+      <button
+        type="button"
+        disabled={index === total - 1}
+        onClick={onMoveRight}
+        className="border-l border-slate-200 px-2.5 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30"
+        aria-label={`Move ${label} right`}
+      >
+        →
+      </button>
     </div>
   );
 }
