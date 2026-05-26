@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
 
 type Tab = "compliance" | "movements" | "access";
@@ -176,25 +176,39 @@ function PortalIframePanels({
 }) {
   const [mountedTabs, setMountedTabs] = useState<Set<Tab>>(() => new Set(["compliance"]));
 
-  useEffect(() => {
+  const mountTab = useCallback((id: Tab) => {
     setMountedTabs((prev) => {
-      if (prev.has(activeTab)) return prev;
+      if (prev.has(id)) return prev;
       const next = new Set(prev);
-      next.add(activeTab);
+      next.add(id);
       return next;
     });
-  }, [activeTab]);
+  }, []);
+
+  useEffect(() => {
+    mountTab(activeTab);
+  }, [activeTab, mountTab]);
+
+  const prefetchMovements = useCallback(() => mountTab("movements"), [mountTab]);
+  const prefetchAccess = useCallback(() => mountTab("access"), [mountTab]);
 
   return (
     <div className="relative min-h-0 flex-1">
       {tabs.map((item) => {
         if (!mountedTabs.has(item.id)) return null;
+        const onLoad =
+          item.id === "compliance"
+            ? prefetchMovements
+            : item.id === "movements"
+              ? prefetchAccess
+              : undefined;
         return (
           <AppFrame
             key={item.id}
             title={item.label}
             src={item.href}
             visible={activeTab === item.id}
+            onLoad={onLoad}
           />
         );
       })}
@@ -206,10 +220,12 @@ function AppFrame({
   title,
   src,
   visible,
+  onLoad,
 }: {
   title: string;
   src: string;
   visible: boolean;
+  onLoad?: () => void;
 }) {
   return (
     <iframe
@@ -217,6 +233,7 @@ function AppFrame({
       src={src}
       hidden={!visible}
       aria-hidden={!visible}
+      onLoad={onLoad}
       className={
         visible
           ? "absolute inset-0 h-full w-full rounded-xl border border-slate-200 bg-white"
