@@ -16,6 +16,7 @@ export type AuthPortDto = {
   code: string;
   name: string;
   loginEmail: string | null;
+  reportEmailTo: string;
   isActive: boolean;
   hasAccessPin: boolean;
 };
@@ -72,6 +73,7 @@ export function AdminAuthPortsPanel({ reloadToken = 0, onSecretsRevealed }: Admi
         isActive: form.get("isActive") === "on",
         ...(password.length > 0 ? { password } : {}),
         ...(accessPin.length > 0 ? { accessPin } : {}),
+        reportEmailTo: form.get("reportEmailTo"),
       }),
     });
     setBusy(false);
@@ -99,7 +101,8 @@ export function AdminAuthPortsPanel({ reloadToken = 0, onSecretsRevealed }: Admi
     <div className="space-y-4">
       <p className="text-sm text-slate-600">
         Port code + shared password unlock PCR, PMS, and hub (staff login). Login email is for
-        managers and reminder emails. Access PIN is for the hub Access register tab.
+        managers and reminder emails. Report email(s) receive PMS period Excel reports (comma-separated).
+        Access PIN is for the hub Access register tab.
       </p>
       <ul className="divide-y rounded border border-slate-200 bg-white">
         {ports.length === 0 && (
@@ -133,6 +136,19 @@ export function AdminAuthPortsPanel({ reloadToken = 0, onSecretsRevealed }: Admi
                     defaultValue={port.loginEmail ?? ""}
                     className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
                   />
+                </label>
+                <label className="block text-sm">
+                  PMS report email(s)
+                  <input
+                    name="reportEmailTo"
+                    type="text"
+                    defaultValue={port.reportEmailTo}
+                    placeholder="ops@example.com, finance@example.com"
+                    className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+                  />
+                  <span className="mt-1 block text-xs text-slate-500">
+                    Comma-separated recipients when staff send a period report.
+                  </span>
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input name="isActive" type="checkbox" defaultChecked={port.isActive} />
@@ -200,6 +216,18 @@ export function AdminAuthPortsPanel({ reloadToken = 0, onSecretsRevealed }: Admi
                     <dt className="text-xs uppercase tracking-wide text-slate-500">Login email</dt>
                     <dd>
                       {port.loginEmail ?? (
+                        <span className="text-amber-800">Not set</span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">
+                      PMS report email(s)
+                    </dt>
+                    <dd>
+                      {port.reportEmailTo ? (
+                        port.reportEmailTo
+                      ) : (
                         <span className="text-amber-800">Not set</span>
                       )}
                     </dd>

@@ -91,8 +91,14 @@ export {
   asicReminderLinesForRecords,
   buildAsicReminderEmail,
   buildComplianceReminderEmail,
+  buildPmsLastDayReminderEmail,
+  buildPmsOverduePeriodReminderEmail,
   type AsicReminderLine,
 } from "./reminders";
+export {
+  parseReportEmailRecipients,
+  reportEmailRecipientList,
+} from "./report-email";
 export {
   daysUntilAsicExpiry,
   formatAsicExpiryMonth,

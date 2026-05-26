@@ -72,3 +72,40 @@ export function buildAsicReminderEmail(input: {
   ].join("\n");
   return { subject, text };
 }
+
+export function buildPmsLastDayReminderEmail(input: {
+  portCode: string;
+  periodLabel: string;
+  year: number;
+}): { subject: string; text: string } {
+  const subject = `${input.portCode} — send movement report today (${input.periodLabel})`;
+  const text = [
+    `${input.portCode} — Port Movement Summary`,
+    "",
+    `Today is the last day of ${input.periodLabel} ${input.year}.`,
+    "After the last flight for the day, sign in and send the period report.",
+    "",
+    "Sign in at https://pms.porttools.com.au or https://porttools.com.au",
+    "",
+    "Managers can turn off last-day reminder emails in PMS (overdue reminders are always sent).",
+  ].join("\n");
+  return { subject, text };
+}
+
+export function buildPmsOverduePeriodReminderEmail(input: {
+  portCode: string;
+  periodLabel: string;
+  year: number;
+  endDateLabel: string;
+}): { subject: string; text: string } {
+  const subject = `${input.portCode} — movement report overdue (${input.periodLabel})`;
+  const text = [
+    `${input.portCode} — Port Movement Summary`,
+    "",
+    `${input.periodLabel} ${input.year} ended on ${input.endDateLabel} and the report has not been sent.`,
+    "Please sign in, complete any final entries, and send the period report.",
+    "",
+    "Sign in at https://pms.porttools.com.au or https://porttools.com.au",
+  ].join("\n");
+  return { subject, text };
+}

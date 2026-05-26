@@ -7,7 +7,10 @@ export type ManagerReminderToggleProps = {
   description: string;
   enabled: boolean;
   settingsUrl: string;
-  field: "complianceReminderEmailsEnabled" | "asicReminderEmailsEnabled";
+  field:
+    | "complianceReminderEmailsEnabled"
+    | "asicReminderEmailsEnabled"
+    | "pmsLastDayReminderEmailsEnabled";
   loginEmail: string | null;
 };
 

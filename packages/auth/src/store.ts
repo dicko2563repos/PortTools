@@ -13,6 +13,7 @@ type AuthPortRow = {
   loginEmail?: string | null;
   complianceReminderEmailsEnabled?: boolean;
   asicReminderEmailsEnabled?: boolean;
+  pmsLastDayReminderEmailsEnabled?: boolean;
   isActive: boolean;
   credentials?: { passwordHash: string } | null;
 };
@@ -75,6 +76,7 @@ export type AuthStoreClient = {
         loginEmail?: string | null;
         complianceReminderEmailsEnabled?: boolean;
         asicReminderEmailsEnabled?: boolean;
+        pmsLastDayReminderEmailsEnabled?: boolean;
         isActive?: boolean;
       };
     }): Promise<{ id: string; code: string; name: string }>;
@@ -610,6 +612,7 @@ export function createAuthStore(client: AuthStoreClient) {
       data: {
         complianceReminderEmailsEnabled?: boolean;
         asicReminderEmailsEnabled?: boolean;
+        pmsLastDayReminderEmailsEnabled?: boolean;
       }
     ): Promise<boolean> {
       const existing = await client.authPort.findUnique({ where: { id: authPortId } });
@@ -623,6 +626,9 @@ export function createAuthStore(client: AuthStoreClient) {
           ...(data.asicReminderEmailsEnabled !== undefined
             ? { asicReminderEmailsEnabled: data.asicReminderEmailsEnabled }
             : {}),
+          ...(data.pmsLastDayReminderEmailsEnabled !== undefined
+            ? { pmsLastDayReminderEmailsEnabled: data.pmsLastDayReminderEmailsEnabled }
+            : {}),
         },
       });
       return true;
@@ -631,6 +637,7 @@ export function createAuthStore(client: AuthStoreClient) {
     async getPortReminderSettings(authPortId: string): Promise<{
       complianceReminderEmailsEnabled: boolean;
       asicReminderEmailsEnabled: boolean;
+      pmsLastDayReminderEmailsEnabled: boolean;
       loginEmail: string | null;
     } | null> {
       const row = await client.authPort.findUnique({
@@ -640,6 +647,10 @@ export function createAuthStore(client: AuthStoreClient) {
       return {
         complianceReminderEmailsEnabled: Boolean(row.complianceReminderEmailsEnabled),
         asicReminderEmailsEnabled: Boolean(row.asicReminderEmailsEnabled),
+        pmsLastDayReminderEmailsEnabled:
+          row.pmsLastDayReminderEmailsEnabled !== undefined
+            ? Boolean(row.pmsLastDayReminderEmailsEnabled)
+            : true,
         loginEmail: row.loginEmail ?? null,
       };
     },
