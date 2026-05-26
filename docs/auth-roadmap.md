@@ -85,6 +85,15 @@ Port staff logging in on **`pcr.porttools.com.au`** or **`pms.porttools.com.au`*
 - Optional checkbox **“Stay signed in until next Monday?”** — app cookie until next Monday 00:00 **Australia/Brisbane**; no tab gate.
 - Managers, reports, and **hub** login unchanged (full login each visit / hub tab session).
 
+## Admin credentials console *(shipped)*
+
+**admin.porttools.com.au** → Platform → **Credentials** tabbed UI:
+
+- **Ports / Managers / Reports / Admins** — list, edit, reset secrets
+- **+ Add** — chooser then create form for the selected type
+- **Generate** on password/PIN fields; **one-time modal** after create or reset (copy now — not shown again)
+- Passwords and PINs are never viewable after save (hash only in DB)
+
 Original Option 3 steps (completed):
 
 1. Hub login sets cookie on `.porttools.com.au`

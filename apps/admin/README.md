@@ -1,6 +1,6 @@
 # PortTools Admin console
 
-Central admin login at **https://admin.porttools.com.au** — manager accounts, platform admins, and (future) PCR/PMS admin tabs.
+Central admin login at **https://admin.porttools.com.au** — credentials console (ports, managers, reports, admins), platform admins, and (future) PCR/PMS admin tabs.
 
 ## Local dev
 

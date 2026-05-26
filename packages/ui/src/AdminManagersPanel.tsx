@@ -2,18 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "./Button";
-
-async function readApiError(res: Response, fallback: string): Promise<string> {
-  try {
-    const data = (await res.json()) as { error?: unknown };
-    if (typeof data.error === "string" && data.error.length > 0 && data.error.length <= 300) {
-      return data.error;
-    }
-  } catch {
-    /* ignore */
-  }
-  return fallback;
-}
+import { SecretInputRow } from "./SecretInputRow";
+import {
+  generateSecurePassword,
+  readAdminApiError,
+  type AdminCredentialPanelProps,
+  type OneTimeSecret,
+} from "./admin-credential-utils";
 
 export type AuthPortOption = {
   id: string;
@@ -29,15 +24,16 @@ export type ManagerDto = {
   authPortIds: string[];
 };
 
-export type AdminManagersPanelProps = Record<string, never>;
+export type AdminManagersPanelProps = AdminCredentialPanelProps;
 
-export function AdminManagersPanel(_props: AdminManagersPanelProps) {
+export function AdminManagersPanel({ reloadToken = 0, onSecretsRevealed }: AdminManagersPanelProps) {
   const [managers, setManagers] = useState<ManagerDto[]>([]);
   const [ports, setPorts] = useState<AuthPortOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editPassword, setEditPassword] = useState("");
 
   const load = useCallback(async () => {
     const [managersRes, portsRes] = await Promise.all([
@@ -56,44 +52,17 @@ export function AdminManagersPanel(_props: AdminManagersPanelProps) {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, reloadToken]);
 
-  async function onCreate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formEl = e.currentTarget;
-    setError(null);
-    setMessage(null);
-    setBusy(true);
-    const form = new FormData(formEl);
-    const authPortIds = form.getAll("authPortIds").map(String);
-    const res = await fetch("/api/admin/managers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: form.get("email"),
-        password: form.get("password"),
-        authPortIds,
-      }),
-    });
-    setBusy(false);
-    if (!res.ok) {
-      setError(await readApiError(res, "Create failed"));
-      return;
-    }
-    setMessage("Manager created");
-    formEl.reset();
-    await load();
-  }
-
-  async function onEdit(e: React.FormEvent<HTMLFormElement>, managerId: string) {
+  async function onEdit(e: React.FormEvent<HTMLFormElement>, manager: ManagerDto) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     setBusy(true);
     setError(null);
     setMessage(null);
-    const password = String(form.get("password") ?? "").trim();
+    const password = editPassword.trim();
     const authPortIds = form.getAll("authPortIds").map(String);
-    const res = await fetch(`/api/admin/managers/${managerId}`, {
+    const res = await fetch(`/api/admin/managers/${manager.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -103,11 +72,17 @@ export function AdminManagersPanel(_props: AdminManagersPanelProps) {
     });
     setBusy(false);
     if (!res.ok) {
-      setError(await readApiError(res, "Update failed"));
+      setError(await readAdminApiError(res, "Update failed"));
       return;
+    }
+    if (password.length > 0) {
+      onSecretsRevealed?.([
+        { label: `${manager.email} — new password`, value: password },
+      ]);
     }
     setMessage("Manager updated");
     setEditingId(null);
+    setEditPassword("");
     await load();
   }
 
@@ -122,7 +97,7 @@ export function AdminManagersPanel(_props: AdminManagersPanelProps) {
     });
     setBusy(false);
     if (!res.ok) {
-      setError(await readApiError(res, "Update failed"));
+      setError(await readAdminApiError(res, "Update failed"));
       return;
     }
     setMessage(manager.isActive ? "Manager disabled" : "Manager enabled");
@@ -135,7 +110,7 @@ export function AdminManagersPanel(_props: AdminManagersPanelProps) {
     setMessage(null);
     const res = await fetch(`/api/admin/managers/${managerId}`, { method: "DELETE" });
     if (!res.ok) {
-      setError(await readApiError(res, "Delete failed"));
+      setError(await readAdminApiError(res, "Delete failed"));
       return;
     }
     setMessage("Manager deleted");
@@ -178,125 +153,94 @@ export function AdminManagersPanel(_props: AdminManagersPanelProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <section>
-        <h2 className="font-medium">Access managers</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Managers sign in to the Access register console for assigned ports only.
-        </p>
-        <ul className="mt-2 divide-y rounded border border-slate-200 bg-white">
-          {managers.length === 0 && (
-            <li className="p-3 text-sm text-slate-500">No managers yet</li>
-          )}
-          {managers.map((manager) => (
-            <li key={manager.id} className="p-3">
-              {editingId === manager.id ? (
-                <form onSubmit={(e) => onEdit(e, manager.id)} className="space-y-3">
-                  <p className="text-sm font-medium">{manager.email}</p>
-                  <label className="block text-sm">
-                    New password (optional)
-                    <input
-                      name="password"
-                      type="password"
-                      minLength={8}
-                      className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-                    />
-                  </label>
-                  <fieldset>
-                    <legend className="text-sm font-medium">Ports</legend>
-                    <PortCheckboxes name="authPortIds" defaultSelected={manager.authPortIds} />
-                  </fieldset>
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={busy} className="px-3 py-1 text-sm">
-                      Save
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="px-3 py-1 text-sm"
-                      onClick={() => setEditingId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">{manager.email}</span>
-                      {!manager.isActive && (
-                        <span className="rounded bg-slate-200 px-2 py-0.5 text-xs">Disabled</span>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-600">
-                      Ports: {portLabels(manager.authPortIds) || "None"}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-sm">
-                    <button
-                      type="button"
-                      className="text-slate-600 underline hover:no-underline"
-                      onClick={() => setEditingId(manager.id)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="text-slate-600 underline hover:no-underline"
-                      onClick={() => toggleActive(manager)}
-                    >
-                      {manager.isActive ? "Disable" : "Enable"}
-                    </button>
-                    <button
-                      type="button"
-                      className="text-red-700 underline hover:no-underline"
-                      onClick={() => deleteManager(manager.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
+    <div className="space-y-4">
+      <p className="text-sm text-slate-600">
+        Managers sign in with port login email + password at the hub and manager portal. Assign
+        which ports each manager can access.
+      </p>
+      <ul className="divide-y rounded border border-slate-200 bg-white">
+        {managers.length === 0 && (
+          <li className="p-3 text-sm text-slate-500">No managers yet — use Add to create one.</li>
+        )}
+        {managers.map((manager) => (
+          <li key={manager.id} className="p-3">
+            {editingId === manager.id ? (
+              <form onSubmit={(e) => void onEdit(e, manager)} className="space-y-3">
+                <p className="text-sm font-medium">{manager.email}</p>
+                <SecretInputRow
+                  label="New password (optional)"
+                  minLength={8}
+                  value={editPassword}
+                  onChange={setEditPassword}
+                  onGenerate={() => setEditPassword(generateSecurePassword())}
+                  hint="Leave blank to keep the current password."
+                />
+                <fieldset>
+                  <legend className="text-sm font-medium">Ports</legend>
+                  <PortCheckboxes name="authPortIds" defaultSelected={manager.authPortIds} />
+                </fieldset>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={busy} className="px-3 py-1 text-sm">
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="px-3 py-1 text-sm"
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditPassword("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h2 className="font-medium">Add manager</h2>
-        <form
-          onSubmit={onCreate}
-          className="mt-2 space-y-3 rounded border border-slate-200 bg-white p-4"
-        >
-          <label className="block text-sm">
-            Email
-            <input
-              name="email"
-              type="email"
-              required
-              className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-            />
-          </label>
-          <label className="block text-sm">
-            Password
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-            />
-          </label>
-          <fieldset>
-            <legend className="text-sm font-medium">Ports</legend>
-            <PortCheckboxes name="authPortIds" />
-          </fieldset>
-          <Button type="submit" disabled={busy} className="text-sm">
-            Create manager
-          </Button>
-        </form>
-      </section>
+              </form>
+            ) : (
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{manager.email}</span>
+                    {!manager.isActive && (
+                      <span className="rounded bg-slate-200 px-2 py-0.5 text-xs">Disabled</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Ports: {portLabels(manager.authPortIds) || "None"}
+                  </p>
+                  <p className="text-xs text-slate-500">Unlocks: Hub, manager portal, assigned ports</p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-sm">
+                  <button
+                    type="button"
+                    className="text-slate-600 underline hover:no-underline"
+                    onClick={() => {
+                      setEditingId(manager.id);
+                      setEditPassword("");
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="text-slate-600 underline hover:no-underline"
+                    onClick={() => void toggleActive(manager)}
+                  >
+                    {manager.isActive ? "Disable" : "Enable"}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-red-700 underline hover:no-underline"
+                    onClick={() => void deleteManager(manager.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {message && <p className="text-sm text-green-700">{message}</p>}

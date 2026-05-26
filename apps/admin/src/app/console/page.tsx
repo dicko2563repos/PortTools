@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import {
-  AdminAdminsPanel,
-  AdminAuthPortsPanel,
-  AdminChangePasswordForm,
-  AdminManagersPanel,
-  AdminReportsUsersPanel,
-} from "@porttools/ui";
+import { AdminChangePasswordForm, AdminCredentialsConsole } from "@porttools/ui";
 import { LogoutButton } from "@/components/LogoutButton";
 import { getSession } from "@/lib/session";
 import { ACCESS_APP_URL } from "@/lib/support";
@@ -41,10 +35,7 @@ export default async function AdminConsolePage() {
 
       <div className="space-y-12">
         <AdminChangePasswordForm />
-        <AdminAuthPortsPanel />
-        <AdminReportsUsersPanel />
-        <AdminAdminsPanel currentAdminId={session.adminId} />
-        <AdminManagersPanel />
+        <AdminCredentialsConsole currentAdminId={session.adminId} />
       </div>
     </main>
   );

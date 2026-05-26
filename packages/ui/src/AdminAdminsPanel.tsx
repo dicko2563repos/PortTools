@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "./Button";
+import { SecretInputRow } from "./SecretInputRow";
+import {
+  generateSecurePassword,
+  type AdminCredentialPanelProps,
+} from "./admin-credential-utils";
 
 type AdminDto = {
   id: string;
@@ -9,17 +14,22 @@ type AdminDto = {
   createdAt: string;
 };
 
-export type AdminAdminsPanelProps = {
+export type AdminAdminsPanelProps = AdminCredentialPanelProps & {
   currentAdminId: string;
 };
 
-export function AdminAdminsPanel({ currentAdminId }: AdminAdminsPanelProps) {
+export function AdminAdminsPanel({
+  currentAdminId,
+  reloadToken = 0,
+  onSecretsRevealed,
+}: AdminAdminsPanelProps) {
   const [admins, setAdmins] = useState<AdminDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBusy, setEditBusy] = useState(false);
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
+  const [editPassword, setEditPassword] = useState("");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/admins");
@@ -33,44 +43,22 @@ export function AdminAdminsPanel({ currentAdminId }: AdminAdminsPanelProps) {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, reloadToken]);
 
-  async function onCreate(e: React.FormEvent<HTMLFormElement>) {
+  async function onEdit(e: React.FormEvent<HTMLFormElement>, admin: AdminDto) {
     e.preventDefault();
-    const formEl = e.currentTarget;
-    setError(null);
-    setMessage(null);
-
-    const form = new FormData(formEl);
-    const res = await fetch("/api/admin/admins", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: form.get("email"),
-        password: form.get("password"),
-      }),
-    });
-
-    if (!res.ok) {
-      const data = (await res.json()) as { error?: string };
-      setError(data.error ?? "Create failed");
-      return;
-    }
-
-    setMessage("Admin account created");
-    formEl.reset();
-    await load();
-  }
-
-  async function onEdit(e: React.FormEvent<HTMLFormElement>, adminId: string) {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
     setEditBusy(true);
     setError(null);
     setMessage(null);
 
-    const password = String(form.get("password") ?? "").trim();
-    const res = await fetch(`/api/admin/admins/${adminId}`, {
+    const password = editPassword.trim();
+    if (password.length < 8) {
+      setEditBusy(false);
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    const res = await fetch(`/api/admin/admins/${admin.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
@@ -84,8 +72,10 @@ export function AdminAdminsPanel({ currentAdminId }: AdminAdminsPanelProps) {
       return;
     }
 
+    onSecretsRevealed?.([{ label: `${admin.email} — new password`, value: password }]);
     setMessage("Admin password updated");
     setEditingId(null);
+    setEditPassword("");
     await load();
   }
 
@@ -121,108 +111,80 @@ export function AdminAdminsPanel({ currentAdminId }: AdminAdminsPanelProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <section>
-        <h2 className="font-medium">Admin accounts</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Shared across Port Compliance Record and Port Movement Summary. At least one admin
-          must remain.
-        </p>
-        <ul className="mt-2 divide-y rounded border border-slate-200 bg-white">
-          {admins.length === 0 && (
-            <li className="p-3 text-sm text-slate-500">No admin accounts found</li>
-          )}
-          {admins.map((admin) => (
-            <li key={admin.id} className="p-3">
-              {editingId === admin.id ? (
-                <form onSubmit={(e) => onEdit(e, admin.id)} className="space-y-2">
-                  <p className="text-sm font-medium text-slate-900">{admin.email}</p>
-                  <input
-                    name="password"
-                    type="password"
-                    placeholder="New password (min 8 chars)"
-                    minLength={8}
-                    required
-                    className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
-                  />
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={editBusy} className="px-3 py-1 text-sm">
-                      Save password
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="px-3 py-1 text-sm"
-                      onClick={() => setEditingId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <span className="font-medium">{admin.email}</span>
-                    {admin.id === currentAdminId && (
-                      <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                        You
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditingId(admin.id)}
-                      className="text-sm text-slate-600 underline hover:no-underline"
-                    >
-                      Reset password
-                    </button>
-                    <button
-                      type="button"
-                      disabled={deleteBusyId === admin.id || admin.id === currentAdminId}
-                      onClick={() => void removeAdmin(admin)}
-                      className="text-sm text-slate-600 underline hover:no-underline disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Remove
-                    </button>
-                  </div>
+    <div className="space-y-4">
+      <p className="text-sm text-slate-600">
+        Platform admins can sign in to this console and legacy PCR/PMS admin routes. At least one
+        admin must remain.
+      </p>
+      <ul className="divide-y rounded border border-slate-200 bg-white">
+        {admins.length === 0 && (
+          <li className="p-3 text-sm text-slate-500">No admin accounts found</li>
+        )}
+        {admins.map((admin) => (
+          <li key={admin.id} className="p-3">
+            {editingId === admin.id ? (
+              <form onSubmit={(e) => void onEdit(e, admin)} className="space-y-2">
+                <p className="text-sm font-medium text-slate-900">{admin.email}</p>
+                <SecretInputRow
+                  label="New password"
+                  required
+                  minLength={8}
+                  value={editPassword}
+                  onChange={setEditPassword}
+                  onGenerate={() => setEditPassword(generateSecurePassword())}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={editBusy} className="px-3 py-1 text-sm">
+                    Save password
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="px-3 py-1 text-sm"
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditPassword("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h2 className="font-medium">Add admin</h2>
-        <form
-          onSubmit={onCreate}
-          className="mt-2 space-y-2 rounded border border-slate-200 bg-white p-4"
-        >
-          <label className="block text-sm">
-            Email
-            <input
-              name="email"
-              type="email"
-              required
-              className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-            />
-          </label>
-          <label className="block text-sm">
-            Password
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
-            />
-          </label>
-          <Button type="submit" className="text-sm">
-            Create admin account
-          </Button>
-        </form>
-      </section>
+              </form>
+            ) : (
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <span className="font-medium">{admin.email}</span>
+                  {admin.id === currentAdminId && (
+                    <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                      You
+                    </span>
+                  )}
+                </div>
+                <div className="flex shrink-0 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(admin.id);
+                      setEditPassword("");
+                    }}
+                    className="text-sm text-slate-600 underline hover:no-underline"
+                  >
+                    Reset password
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deleteBusyId === admin.id || admin.id === currentAdminId}
+                    onClick={() => void removeAdmin(admin)}
+                    className="text-sm text-slate-600 underline hover:no-underline disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {message && <p className="text-sm text-green-700">{message}</p>}

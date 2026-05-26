@@ -1,5 +1,7 @@
 export { AdminAuthPortsPanel } from "./AdminAuthPortsPanel";
 export type { AdminAuthPortsPanelProps, AuthPortDto } from "./AdminAuthPortsPanel";
+export { AdminCredentialsConsole } from "./AdminCredentialsConsole";
+export type { AdminCredentialsConsoleProps, CredentialTab } from "./AdminCredentialsConsole";
 export { AdminManagersPanel } from "./AdminManagersPanel";
 export type { AdminManagersPanelProps, AuthPortOption, ManagerDto } from "./AdminManagersPanel";
 export { AdminReportsUsersPanel } from "./AdminReportsUsersPanel";
