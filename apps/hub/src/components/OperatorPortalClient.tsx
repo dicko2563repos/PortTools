@@ -1,10 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
+import {
+  DEFAULT_PORTAL_TAB_ORDER,
+  loadPortalTabOrder,
+  PORTAL_TAB_LABELS,
+  portalSessionUserKey,
+  savePortalTabOrder,
+  type PortalTabId,
+} from "@/lib/portal-tab-order";
 
-type Tab = "compliance" | "movements" | "access";
+type Tab = PortalTabId;
 
 type PortOption = {
   authPortId: string;
@@ -47,6 +55,14 @@ type ReportsIframeUrls = {
 
 type PortalTab = { id: Tab; label: string; href: string };
 
+function buildPortalTabs(order: Tab[], urls: PortIframeUrls): PortalTab[] {
+  return order.map((id) => ({
+    id,
+    label: PORTAL_TAB_LABELS[id],
+    href: urls[id],
+  }));
+}
+
 export function OperatorPortalClient({
   session,
   iframeUrls,
@@ -55,9 +71,43 @@ export function OperatorPortalClient({
   iframeUrls: PortIframeUrls | ReportsIframeUrls;
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("compliance");
+  const userKey = portalSessionUserKey(session);
+  const [tabOrder, setTabOrder] = useState<Tab[]>(DEFAULT_PORTAL_TAB_ORDER);
+  const [tab, setTab] = useState<Tab>(DEFAULT_PORTAL_TAB_ORDER[0]);
+  const [customizeTabs, setCustomizeTabs] = useState(false);
   const [busy, setBusy] = useState(false);
   const [switchingPort, setSwitchingPort] = useState(false);
+
+  useEffect(() => {
+    const order = loadPortalTabOrder(userKey);
+    setTabOrder(order);
+    setTab(order[0]);
+  }, [userKey]);
+
+  const applyTabOrder = useCallback(
+    (nextOrder: Tab[]) => {
+      const normalized = nextOrder;
+      setTabOrder(normalized);
+      savePortalTabOrder(userKey, normalized);
+    },
+    [userKey]
+  );
+
+  const moveTab = useCallback(
+    (index: number, delta: -1 | 1) => {
+      const target = index + delta;
+      if (target < 0 || target >= tabOrder.length) return;
+      const next = [...tabOrder];
+      [next[index], next[target]] = [next[target], next[index]];
+      applyTabOrder(next);
+    },
+    [applyTabOrder, tabOrder]
+  );
+
+  const resetTabOrder = useCallback(() => {
+    applyTabOrder(DEFAULT_PORTAL_TAB_ORDER);
+    setTab(DEFAULT_PORTAL_TAB_ORDER[0]);
+  }, [applyTabOrder]);
 
   async function onLogout() {
     setBusy(true);
@@ -78,7 +128,7 @@ export function OperatorPortalClient({
     });
     setSwitchingPort(false);
     if (!res.ok) return;
-    setTab("compliance");
+    setTab(tabOrder[0]);
     router.refresh();
   }
 
@@ -105,11 +155,7 @@ export function OperatorPortalClient({
   const portStackKey =
     session.type === "manager" ? session.authPortId : session.movementsPortId;
 
-  const tabs: PortalTab[] = [
-    { id: "compliance", label: "Compliance (PCR)", href: urls.compliance },
-    { id: "movements", label: "Movements (PMS)", href: urls.movements },
-    { id: "access", label: "Access register", href: urls.access },
-  ];
+  const tabs = useMemo(() => buildPortalTabs(tabOrder, urls), [tabOrder, urls]);
 
   return (
     <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-4">
@@ -144,22 +190,80 @@ export function OperatorPortalClient({
         </Button>
       </header>
 
-      <nav className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
-        {tabs.map((item) => (
+      <div className="space-y-2 border-b border-slate-200 pb-2">
+        <nav className="flex flex-wrap items-center gap-2">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setTab(item.id)}
+              className={
+                tab === item.id
+                  ? "rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white"
+                  : "rounded-lg px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+              }
+            >
+              {item.label}
+            </button>
+          ))}
           <button
-            key={item.id}
             type="button"
-            onClick={() => setTab(item.id)}
-            className={
-              tab === item.id
-                ? "rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white"
-                : "rounded-lg px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
-            }
+            onClick={() => setCustomizeTabs((open) => !open)}
+            className="rounded-lg px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            aria-expanded={customizeTabs}
           >
-            {item.label}
+            {customizeTabs ? "Done" : "Tab order"}
           </button>
-        ))}
-      </nav>
+        </nav>
+
+        {customizeTabs ? (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <p className="mb-2 text-xs text-slate-600">
+              Tabs open left to right. The first tab loads on sign-in; background loading
+              follows this order. Saved for this login on this browser.
+            </p>
+            <ul className="space-y-1">
+              {tabOrder.map((id, index) => (
+                <li
+                  key={id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white px-2 py-1.5 text-sm"
+                >
+                  <span>
+                    {index + 1}. {PORTAL_TAB_LABELS[id]}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => moveTab(index, -1)}
+                      className="rounded px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                      aria-label={`Move ${PORTAL_TAB_LABELS[id]} left`}
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === tabOrder.length - 1}
+                      onClick={() => moveTab(index, 1)}
+                      className="rounded px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                      aria-label={`Move ${PORTAL_TAB_LABELS[id]} right`}
+                    >
+                      →
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={resetTabOrder}
+              className="mt-2 text-xs text-slate-500 underline hover:text-slate-700"
+            >
+              Reset to default order
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       <PortalIframePanels key={portStackKey} tabs={tabs} activeTab={tab} />
     </div>
@@ -174,7 +278,8 @@ function PortalIframePanels({
   tabs: PortalTab[];
   activeTab: Tab;
 }) {
-  const [mountedTabs, setMountedTabs] = useState<Set<Tab>>(() => new Set(["compliance"]));
+  const firstTabId = tabs[0]?.id ?? DEFAULT_PORTAL_TAB_ORDER[0];
+  const [mountedTabs, setMountedTabs] = useState<Set<Tab>>(() => new Set([firstTabId]));
 
   const mountTab = useCallback((id: Tab) => {
     setMountedTabs((prev) => {
@@ -189,26 +294,31 @@ function PortalIframePanels({
     mountTab(activeTab);
   }, [activeTab, mountTab]);
 
-  const prefetchMovements = useCallback(() => mountTab("movements"), [mountTab]);
-  const prefetchAccess = useCallback(() => mountTab("access"), [mountTab]);
+  useEffect(() => {
+    mountTab(firstTabId);
+  }, [firstTabId, mountTab]);
+
+  const prefetchNext = useCallback(
+    (tabId: Tab) => {
+      const index = tabs.findIndex((item) => item.id === tabId);
+      const next = tabs[index + 1];
+      if (next) mountTab(next.id);
+    },
+    [mountTab, tabs]
+  );
 
   return (
     <div className="relative min-h-0 flex-1">
       {tabs.map((item) => {
         if (!mountedTabs.has(item.id)) return null;
-        const onLoad =
-          item.id === "compliance"
-            ? prefetchMovements
-            : item.id === "movements"
-              ? prefetchAccess
-              : undefined;
+        const hasNext = tabs.findIndex((t) => t.id === item.id) < tabs.length - 1;
         return (
           <AppFrame
             key={item.id}
             title={item.label}
             src={item.href}
             visible={activeTab === item.id}
-            onLoad={onLoad}
+            onLoad={hasNext ? () => prefetchNext(item.id) : undefined}
           />
         );
       })}
