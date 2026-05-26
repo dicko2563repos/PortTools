@@ -29,6 +29,8 @@ export type { LoginFormProps, LoginMode, LoginEntryApp } from "./LoginForm";
 export { LoginForm } from "./LoginForm";
 export { TabSessionGuard } from "./TabSessionGuard";
 export type { TabSessionGuardProps } from "./TabSessionGuard";
+export { PortTabSessionGate } from "./PortTabSessionGate";
+export type { PortTabSessionGateProps } from "./PortTabSessionGate";
 export {
   TAB_SESSION_KEYS,
   markTabSessionActive,

@@ -47,7 +47,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function markSessionForLoginType(type?: string) {
+  function markSessionForLoginType(type?: string, rememberWeek?: boolean) {
     if (mode === "admin") {
       markTabSessionActive(TAB_SESSION_KEYS.admin);
       return;
@@ -61,6 +61,11 @@ export function LoginForm({
       }
       if (type === "port" && entryApp === "access") {
         markTabSessionActive(TAB_SESSION_KEYS.access);
+      }
+      if (type === "port" && (entryApp === "pcr" || entryApp === "pms") && !rememberWeek) {
+        markTabSessionActive(
+          entryApp === "pcr" ? TAB_SESSION_KEYS.pcr : TAB_SESSION_KEYS.pms
+        );
       }
       return;
     }
@@ -90,6 +95,11 @@ export function LoginForm({
                 ? operatorLoginEndpoint
                 : reportsLoginEndpoint;
 
+    const rememberWeek =
+      mode === "unified" &&
+      (entryApp === "pcr" || entryApp === "pms") &&
+      form.get("rememberWeek") === "on";
+
     const body =
       mode === "port"
         ? { code: form.get("code"), password: form.get("password") }
@@ -98,6 +108,7 @@ export function LoginForm({
               identifier: form.get("identifier"),
               password: form.get("password"),
               entryApp,
+              rememberWeek,
             }
           : { email: form.get("email"), password: form.get("password") };
 
@@ -119,7 +130,7 @@ export function LoginForm({
       redirect?: string;
     };
 
-    markSessionForLoginType(data.type);
+    markSessionForLoginType(data.type, rememberWeek);
 
     const destination =
       mode === "unified"
@@ -189,6 +200,16 @@ export function LoginForm({
           autoComplete="current-password"
         />
       </label>
+      {mode === "unified" && (entryApp === "pcr" || entryApp === "pms") ? (
+        <label className="flex items-start gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            name="rememberWeek"
+            className="mt-0.5 rounded border-slate-300"
+          />
+          <span>Stay signed in until next Monday?</span>
+        </label>
+      ) : null}
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" disabled={loading} className="py-2">
         {loading ? "Signing in…" : "Sign in"}

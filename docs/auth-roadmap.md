@@ -77,6 +77,14 @@ Port create (Admin console, PCR admin, or PMS admin) uses `@porttools/auth` **`p
 
 **Phase 3 (future):** Retire legacy per-app login pages where safe; optional Outlook calendar integration for ASIC expiry.
 
+## Direct PCR/PMS login — stay signed in *(shipped)*
+
+Port staff logging in on **`pcr.porttools.com.au`** or **`pms.porttools.com.au`** only:
+
+- Default: **session cookie** + tab-session gate (closing the tab signs out). No `porttools_session` SSO cookie.
+- Optional checkbox **“Stay signed in until next Monday?”** — app cookie until next Monday 00:00 **Australia/Brisbane**; no tab gate.
+- Managers, reports, and **hub** login unchanged (full login each visit / hub tab session).
+
 Original Option 3 steps (completed):
 
 1. Hub login sets cookie on `.porttools.com.au`

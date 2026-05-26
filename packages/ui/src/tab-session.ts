@@ -5,6 +5,8 @@ export const TAB_SESSION_KEYS = {
   /** Access register PIN unlock — scoped to access.porttools.com.au tab session. */
   accessPin: "porttools_access_pin_tab",
   hub: "porttools_hub_tab",
+  pcr: "porttools_pcr_tab",
+  pms: "porttools_pms_tab",
 } as const;
 
 export function markTabSessionActive(key: string): void {
