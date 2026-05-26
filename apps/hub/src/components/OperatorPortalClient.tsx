@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, clearTabSession, TAB_SESSION_KEYS } from "@porttools/ui";
 
 type Tab = "compliance" | "movements" | "access";
@@ -45,6 +45,8 @@ type ReportsIframeUrls = {
   reports: string;
 };
 
+type PortalTab = { id: Tab; label: string; href: string };
+
 export function OperatorPortalClient({
   session,
   iframeUrls,
@@ -76,6 +78,7 @@ export function OperatorPortalClient({
     });
     setSwitchingPort(false);
     if (!res.ok) return;
+    setTab("compliance");
     router.refresh();
   }
 
@@ -92,21 +95,21 @@ export function OperatorPortalClient({
             {busy ? "Signing out…" : "Sign out"}
           </Button>
         </header>
-        <AppFrame title="Movement reports" src={urls.reports} />
+        <AppFrame title="Movement reports" src={urls.reports} visible />
       </div>
     );
   }
 
   const urls = iframeUrls as PortIframeUrls;
   const isManager = session.type === "manager";
+  const portStackKey =
+    session.type === "manager" ? session.authPortId : session.movementsPortId;
 
-  const tabs: { id: Tab; label: string; href: string }[] = [
+  const tabs: PortalTab[] = [
     { id: "compliance", label: "Compliance (PCR)", href: urls.compliance },
     { id: "movements", label: "Movements (PMS)", href: urls.movements },
     { id: "access", label: "Access register", href: urls.access },
   ];
-
-  const activeTab = tabs.find((item) => item.id === tab) ?? tabs[0]!;
 
   return (
     <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-4">
@@ -158,17 +161,67 @@ export function OperatorPortalClient({
         ))}
       </nav>
 
-      <AppFrame key={activeTab.href} title={activeTab.label} src={activeTab.href} />
+      <PortalIframePanels key={portStackKey} tabs={tabs} activeTab={tab} />
     </div>
   );
 }
 
-function AppFrame({ title, src }: { title: string; src: string }) {
+/** Keeps visited iframes mounted so tab switches avoid SSO bridge + full reload. */
+function PortalIframePanels({
+  tabs,
+  activeTab,
+}: {
+  tabs: PortalTab[];
+  activeTab: Tab;
+}) {
+  const [mountedTabs, setMountedTabs] = useState<Set<Tab>>(() => new Set(["compliance"]));
+
+  useEffect(() => {
+    setMountedTabs((prev) => {
+      if (prev.has(activeTab)) return prev;
+      const next = new Set(prev);
+      next.add(activeTab);
+      return next;
+    });
+  }, [activeTab]);
+
+  return (
+    <div className="relative min-h-0 flex-1">
+      {tabs.map((item) => {
+        if (!mountedTabs.has(item.id)) return null;
+        return (
+          <AppFrame
+            key={item.id}
+            title={item.label}
+            src={item.href}
+            visible={activeTab === item.id}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function AppFrame({
+  title,
+  src,
+  visible,
+}: {
+  title: string;
+  src: string;
+  visible: boolean;
+}) {
   return (
     <iframe
       title={title}
       src={src}
-      className="min-h-0 w-full flex-1 rounded-xl border border-slate-200 bg-white"
+      hidden={!visible}
+      aria-hidden={!visible}
+      className={
+        visible
+          ? "absolute inset-0 h-full w-full rounded-xl border border-slate-200 bg-white"
+          : "hidden"
+      }
     />
   );
 }
