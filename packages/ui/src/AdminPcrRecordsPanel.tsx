@@ -11,6 +11,21 @@ type RecordRow = {
   templateVersion: { version: number; name: string };
 };
 
+const DEFAULT_PORTS_API_PATH = "/api/admin/pcr/ports";
+const DEFAULT_APP_LINK_API_PATH = "/api/admin/app-link";
+
+function defaultRecordsApiPath(portId: string): string {
+  return `/api/admin/pcr/ports/${portId}/records`;
+}
+
+function defaultRecordOpenUrl(recordId: string): string {
+  return `/admin/records/${recordId}`;
+}
+
+function defaultRecordExportUrl(recordId: string): string {
+  return `/api/records/${recordId}/export`;
+}
+
 export type AdminPcrRecordsPanelProps = {
   portsApiPath?: string;
   recordsApiPath?: (portId: string) => string;
@@ -22,12 +37,12 @@ export type AdminPcrRecordsPanelProps = {
 };
 
 export function AdminPcrRecordsPanel({
-  portsApiPath = "/api/admin/pcr/ports",
-  recordsApiPath = (portId) => `/api/admin/pcr/ports/${portId}/records`,
-  recordOpenUrl = (recordId) => `/admin/records/${recordId}`,
-  recordExportUrl = (recordId) => `/api/records/${recordId}/export`,
+  portsApiPath = DEFAULT_PORTS_API_PATH,
+  recordsApiPath = defaultRecordsApiPath,
+  recordOpenUrl = defaultRecordOpenUrl,
+  recordExportUrl = defaultRecordExportUrl,
   appLinkApp,
-  appLinkApiPath = "/api/admin/app-link",
+  appLinkApiPath = DEFAULT_APP_LINK_API_PATH,
 }: AdminPcrRecordsPanelProps) {
   const [ports, setPorts] = useState<PortDto[]>([]);
   const [selectedPortId, setSelectedPortId] = useState<string | null>(null);
@@ -43,10 +58,8 @@ export function AdminPcrRecordsPanel({
     }
     const data = (await res.json()) as { ports: PortDto[] };
     setPorts(data.ports);
-    if (data.ports.length > 0 && !selectedPortId) {
-      setSelectedPortId(data.ports[0]?.id ?? null);
-    }
-  }, [portsApiPath, selectedPortId]);
+    setSelectedPortId((current) => current ?? data.ports[0]?.id ?? null);
+  }, [portsApiPath]);
 
   const loadRecords = useCallback(async (portId: string) => {
     setLoadingRecords(true);

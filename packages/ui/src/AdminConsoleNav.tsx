@@ -14,10 +14,13 @@ const TAB_CLASS =
 export function AdminConsoleNav({ accessAppUrl }: AdminConsoleNavProps) {
   const pathname = usePathname();
 
-  function tabClass(href: string, activePrefixes: string[]) {
-    const active = activePrefixes.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-    );
+  function tabClass(activePrefixes: string[]) {
+    const active = activePrefixes.some((prefix) => {
+      if (prefix === "/console") {
+        return pathname === "/console";
+      }
+      return pathname === prefix || pathname.startsWith(`${prefix}/`);
+    });
     return cn(
       TAB_CLASS,
       active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -26,13 +29,13 @@ export function AdminConsoleNav({ accessAppUrl }: AdminConsoleNavProps) {
 
   return (
     <nav className="mb-8 flex flex-wrap gap-2 border-b border-slate-200 pb-3 text-sm">
-      <Link href="/console/platform" className={tabClass("/console/platform", ["/console/platform", "/console"])}>
+      <Link href="/console/platform" className={tabClass(["/console/platform", "/console"])}>
         Platform
       </Link>
-      <Link href="/console/pcr" className={tabClass("/console/pcr", ["/console/pcr"])}>
+      <Link href="/console/pcr" className={tabClass(["/console/pcr"])}>
         PCR
       </Link>
-      <Link href="/console/pms" className={tabClass("/console/pms", ["/console/pms"])}>
+      <Link href="/console/pms" className={tabClass(["/console/pms"])}>
         PMS
       </Link>
       <a
