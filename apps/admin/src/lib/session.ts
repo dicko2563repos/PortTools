@@ -1,40 +1,21 @@
-import { SignJWT, jwtVerify } from "jose";
+import {
+  adminSessionCookieOptions,
+  createAdminSessionToken,
+  PORTTOOLS_ADMIN_SESSION_COOKIE,
+  verifyAdminSessionToken,
+  type AdminSessionPayload,
+} from "@porttools/auth";
 import { cookies } from "next/headers";
 
-export const SESSION_COOKIE = "porttools_admin_session";
-
-export type SessionPayload = { type: "admin"; adminId: string; email: string };
-
-function secretKey(): Uint8Array {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 16) {
-    throw new Error("SESSION_SECRET must be set (min 16 characters)");
-  }
-  return new TextEncoder().encode(secret);
-}
+export const SESSION_COOKIE = PORTTOOLS_ADMIN_SESSION_COOKIE;
+export type SessionPayload = AdminSessionPayload;
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("24h")
-    .sign(secretKey());
+  return createAdminSessionToken(payload);
 }
 
 export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
-  try {
-    const { payload } = await jwtVerify(token, secretKey());
-    if (payload.type === "admin" && typeof payload.adminId === "string") {
-      return {
-        type: "admin",
-        adminId: payload.adminId,
-        email: String(payload.email ?? ""),
-      };
-    }
-    return null;
-  } catch {
-    return null;
-  }
+  return verifyAdminSessionToken(token);
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
@@ -47,13 +28,7 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function setSessionCookie(payload: SessionPayload): Promise<void> {
   const token = await createSessionToken(payload);
   const cookieStore = await cookies();
-  // Session cookie (no maxAge) — cleared when the browser session ends.
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
+  cookieStore.set(SESSION_COOKIE, token, adminSessionCookieOptions());
 }
 
 export async function clearSessionCookie(): Promise<void> {
