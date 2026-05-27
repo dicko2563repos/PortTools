@@ -6,12 +6,15 @@ import { cn } from "./cn";
 
 export type AdminConsoleNavProps = {
   accessAppUrl: string;
+  pmsReportsUrl: string;
 };
 
 const TAB_CLASS =
   "rounded px-3 py-1 text-sm transition-colors";
 
-export function AdminConsoleNav({ accessAppUrl }: AdminConsoleNavProps) {
+const LINK_CLASS = cn(TAB_CLASS, "bg-slate-100 text-slate-700 hover:bg-slate-200");
+
+export function AdminConsoleNav({ accessAppUrl, pmsReportsUrl }: AdminConsoleNavProps) {
   const pathname = usePathname();
 
   function tabClass(activePrefixes: string[]) {
@@ -35,13 +38,10 @@ export function AdminConsoleNav({ accessAppUrl }: AdminConsoleNavProps) {
       <Link href="/console/pcr" className={tabClass(["/console/pcr"])}>
         PCR
       </Link>
-      <Link href="/console/pms" className={tabClass(["/console/pms"])}>
-        PMS
-      </Link>
-      <a
-        href={accessAppUrl}
-        className={cn(TAB_CLASS, "bg-slate-100 text-slate-700 hover:bg-slate-200")}
-      >
+      <a href={pmsReportsUrl} className={LINK_CLASS}>
+        Open movement reports →
+      </a>
+      <a href={accessAppUrl} className={LINK_CLASS}>
         Open Access register →
       </a>
     </nav>

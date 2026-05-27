@@ -1,6 +1,4 @@
-import {
-  AdminPmsReportsPanel,
-} from "@porttools/ui";
+import { redirect } from "next/navigation";
 import {
   adminCrossAppSsoBridgeUrl,
   createAdminCrossAppSsoToken,
@@ -8,20 +6,17 @@ import {
 import { getSession } from "@/lib/session";
 import { PMS_APP_URL } from "@/lib/support";
 
-export default async function AdminPmsPage() {
+/** Legacy route — movement reports open directly from the nav link. */
+export default async function AdminPmsRedirectPage() {
   const session = await getSession();
-  if (!session) return null;
+  if (!session) {
+    redirect("/login");
+  }
 
   const token = await createAdminCrossAppSsoToken({
     adminId: session.adminId,
     email: session.email,
     returnPath: "/reports",
   });
-  const reportsUrl = adminCrossAppSsoBridgeUrl(PMS_APP_URL, "/reports", token);
-
-  return (
-    <div className="space-y-8">
-      <AdminPmsReportsPanel reportsUrl={reportsUrl} />
-    </div>
-  );
+  redirect(adminCrossAppSsoBridgeUrl(PMS_APP_URL, "/reports", token));
 }
